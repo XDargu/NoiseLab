@@ -403,3 +403,140 @@ class ClampNode extends NoiseNode {
     }
 }
 LiteGraph.registerNodeType("Function/Clamp",ClampNode);
+
+// Other nodes
+class BlurNode extends NoiseNode {
+    constructor(){
+        super();
+        this.addInput("value","array");
+        this.addOutput("out","array");
+        this.properties = { amount : 2 };
+        this.addWidget("slider","Amount", this.properties.amount,{min:1,max: 10, property:"amount"});
+        this.title="Blur";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+    
+    onExecute(){
+
+        
+        const input=this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const amount = Math.max(1, Math.floor(this.properties.amount));
+        const out = new Array(WIDTH * HEIGHT).fill(0);
+
+        // define a simple box kernel size based on amount
+        const kernelSize = amount * 2 + 1; // e.g., amount=2 => 5x5 kernel
+        const kernelArea = kernelSize * kernelSize;
+
+        // helper to safely get input with edge clamping
+        const sample = (x, y) => {
+            x = Math.max(0, Math.min(WIDTH - 1, x));
+            y = Math.max(0, Math.min(HEIGHT - 1, y));
+            return input[y * WIDTH + x];
+        };
+
+        for (let ypos = 0; ypos < HEIGHT; ypos++) {
+            for (let xpos = 0; xpos < WIDTH; xpos++) {
+                let sum = 0;
+
+                // sum all neighbors within kernel
+                for (let ky = -amount; ky <= amount; ky++) {
+                    for (let kx = -amount; kx <= amount; kx++) {
+                        sum += sample(xpos + kx, ypos + ky);
+                    }
+                }
+
+                // average to get blurred value
+                out[ypos * WIDTH + xpos] = sum / kernelArea;
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Function/Blur",BlurNode);
+
+class SobelNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.title = "Sobel Edge";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
+        const out = new Array(WIDTH * HEIGHT).fill(0);
+
+        // Sobel kernels
+        const kernelX = [
+            [-1, 0, 1],
+            [-2, 0, 2],
+            [-1, 0, 1]
+        ];
+        const kernelY = [
+            [-1, -2, -1],
+            [0, 0, 0],
+            [1, 2, 1]
+        ];
+
+        const sample = (x, y) => {
+            x = Math.max(0, Math.min(WIDTH - 1, x));
+            y = Math.max(0, Math.min(HEIGHT - 1, y));
+            return input[y * WIDTH + x];
+        };
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                let gx = 0, gy = 0;
+
+                for (let ky = -1; ky <= 1; ky++) {
+                    for (let kx = -1; kx <= 1; kx++) {
+                        const val = sample(x + kx, y + ky);
+                        gx += val * kernelX[ky + 1][kx + 1];
+                        gy += val * kernelY[ky + 1][kx + 1];
+                    }
+                }
+
+                // edge magnitude
+                out[y * WIDTH + x] = Math.sqrt(gx * gx + gy * gy);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Function/Sobel", SobelNode);
+
+class PosterizeNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { levels: 4 }; // number of steps
+        this.addWidget("slider", "Levels", this.properties.levels, { min: 2, max: 20, step: 1, precision: 0, property: "levels" });
+        this.title = "Posterize";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
+        const levels = Math.max(2, Math.floor(this.properties.levels));
+        const out = new Array(WIDTH * HEIGHT);
+
+        for (let i = 0; i < input.length; i++) {
+            // map value 0..1 to discrete steps
+            let v = input[i];
+            let step = Math.floor(v * levels);      // step index
+            out[i] = step / (levels - 1);          // normalize back to 0..1
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Function/Posterize", PosterizeNode);
