@@ -1,2 +1,3 @@
 # NoiseLab
-Small online tool to play around with perlin noise
+
+NoiseLav is a small online tool to play around with perlin noise using a node editor.
