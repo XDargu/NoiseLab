@@ -54,6 +54,75 @@
 
   /* Final noise canvas */
   #noiseCanvas { border: 1px solid #555; }
+
+
+    /* Checkbox*/
+    .checkbox-container { margin-left: auto;}
+
+    .checkbox-container {
+        display: block;
+        position: relative;
+        padding-left: 45px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Hide the browser's default checkbox */
+    .checkbox-container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    /* Create a custom checkbox */
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        background-color: #eee;
+    }
+
+    /* On mouse-over, add a grey background color */
+    .checkbox-container:hover input ~ .checkmark {
+        background-color: #ccc;
+    }
+
+    /* When the checkbox is checked, add a blue background */
+    .checkbox-container input:checked ~ .checkmark {
+        background-color: #B16F8F;
+    }
+
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the checkmark when checked */
+    .checkbox-container input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    /* Style the checkmark/indicator */
+    .checkbox-container .checkmark:after {
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
 </style>
 </head>
 <body>
@@ -61,6 +130,11 @@
 <div id="titlebar">
   <img src="img/icon.png">
   <span>NoiseLab</span>
+
+  <label class="checkbox-container">Terrain mode
+    <input type="checkbox" checked="checked" id="terrain-mode">
+    <span class="checkmark"></span>
+  </label>
 </div>
 
 <div id="content">
@@ -95,20 +169,68 @@ LiteGraph.clearRegisteredTypes()
 // --- Node evaluation ---
 let activeNode = null;
 
+const terrainModeCheck = document.getElementById("terrain-mode")
+terrainModeCheck.onchange = () => { renderNode(graph.activeNode) }
+
 // --- Graph setup ---
 const graphCanvasEl = document.getElementById("graph");
 const graph = new LGraph();
 const graphCanvas = new LGraphCanvas(graphCanvasEl, graph);
 graph.start();
 
+function heightToRGB(height) {
+
+    height = (height / 255)
+
+    // Define color stops for terrain
+    const gradient = [
+        { h: 0.0, color: [0, 0, 200] },        // Deep water
+        { h: 0.1, color: [0, 100, 255] },      // Shallow water
+        { h: 0.2, color: [238, 214, 175] },    // Beach
+        { h: 0.4, color: [34, 139, 34] },      // Green fields
+        { h: 0.6, color: [0, 100, 0] },        // Darker green hills
+        { h: 0.8, color: [139, 69, 19] },      // Brown mountains
+        { h: 1.5, color: [255, 250, 250] }     // Snow
+    ];
+
+    // Find the segment that contains the current height
+    let lower = gradient[0];
+    let upper = gradient[gradient.length - 1];
+
+    for (let i = 0; i < gradient.length - 1; i++) {
+        if (height >= gradient[i].h && height <= gradient[i + 1].h) {
+            lower = gradient[i];
+            upper = gradient[i + 1];
+            break;
+        }
+    }
+
+    // Interpolation factor
+    let t = (height - lower.h) / (upper.h - lower.h);
+
+    // Linear interpolation between colors
+    const r = Math.round(lower.color[0] + (upper.color[0] - lower.color[0]) * t);
+    const g = Math.round(lower.color[1] + (upper.color[1] - lower.color[1]) * t);
+    const b = Math.round(lower.color[2] + (upper.color[2] - lower.color[2]) * t);
+
+    return {
+        r: Math.round(r),
+        g: Math.round(g),
+        b: Math.round(b),
+    }
+}
+
 // --- Helper: render 2D noise array to canvas ---
 function renderNoise(noiseArray) {
     const imgData = ctx.createImageData(WIDTH, HEIGHT);
+    const isTerrainMode = terrainModeCheck.checked;
     for (let i = 0; i < WIDTH * HEIGHT; i++) {
         const v = Math.floor((noiseArray[i] + 1) * 127.5);
-        imgData.data[i*4+0] = v;
-        imgData.data[i*4+1] = v;
-        imgData.data[i*4+2] = v;
+
+        const col = isTerrainMode ? heightToRGB(v) : null;
+        imgData.data[i*4+0] = col?.r || v;
+        imgData.data[i*4+1] = col?.g || v;
+        imgData.data[i*4+2] = col?.b || v;
         imgData.data[i*4+3] = 255;
     }
     ctx.putImageData(imgData, 0, 0);
@@ -152,15 +274,18 @@ class NoiseNode extends LGraphNode {
         const w = this.previewCanvas.width;
         const h = this.previewCanvas.height;
         const imgData = this.previewCtx.createImageData(w,h);
+        const isTerrainMode = terrainModeCheck.checked;
         for (let y=0;y<h;y++){
             for (let x=0;x<w;x++){
                 const nx = Math.floor(x/WIDTH*WIDTH);
                 const ny = Math.floor(y/HEIGHT*HEIGHT);
                 const v = Math.floor((noiseArray[ny*WIDTH+nx]+1)*127.5);
                 const idx = (y*w+x)*4;
-                imgData.data[idx+0] = v;
-                imgData.data[idx+1] = v;
-                imgData.data[idx+2] = v;
+                const col = isTerrainMode ? heightToRGB(v) : null;
+
+                imgData.data[idx+0] = col?.r || v;
+                imgData.data[idx+1] = col?.g || v;
+                imgData.data[idx+2] = col?.b || v;
                 imgData.data[idx+3] = 255;
             }
         }
@@ -218,7 +343,6 @@ class PerlinNode extends NoiseNode {
         }
         this.setOutputData(0,noiseArray);
         this.drawPreview(noiseArray);
-        console.log(noiseArray)
     }
 }
 LiteGraph.registerNodeType("Generator/Perlin",PerlinNode);
@@ -317,7 +441,8 @@ class ClampNode extends NoiseNode {
         const min=this.properties.min;
         const max=this.properties.max;
         const out=input.map(v=>Math.max(min,Math.min(max,v)));
-        this.setOutputData(0,out); console.log('exec clamp')
+        this.setOutputData(0, out);
+        this.drawPreview(out);
     }
 }
 LiteGraph.registerNodeType("Function/Clamp",ClampNode);
@@ -328,7 +453,7 @@ function renderNode(node){
     graph._nodes_in_order.forEach(n => n.onExecute());
 
     // render clicked node output
-    const output = node.getOutputData(0);
+    const output = node?.getOutputData(0);
     if(output) renderNoise(output);
 }
 
@@ -347,11 +472,11 @@ graph.add(p1);
 const p2=new PerlinNode();
 p2.pos=[10,350];
 p2.properties.frequency=1.3;
-p2.properties.amplitude=0.88;
+p2.properties.amplitude=1.88;
 p2.properties.offset=1.72;
 graph.add(p2);
 
-const addNode=new (LiteGraph.getNodeType("Function/Multiply"))();
+const addNode=new (LiteGraph.getNodeType("Function/Add"))();
 addNode.pos=[300,180];
 graph.add(addNode);
 
