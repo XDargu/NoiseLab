@@ -1,14 +1,15 @@
-function directionalWarpedNoise(noiseFn, x, y, angle, strength = 0.5)
-{
-  const dx = Math.cos(angle);
-  const dy = Math.sin(angle);
+function directionalNoise(noiseFn, x, y, angle, anisotropy = 40.0) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
 
-  const warp = noiseFn(x * 0.5, y * 0.5); // low-frequency warp
+    // rotate coordinates
+    let xr = x * cos + y * sin;
+    let yr = -x * sin + y * cos;
 
-  return noiseFn(
-    x + dx * warp * strength,
-    y + dy * warp * strength
-  );
+    // stretch along one axis
+    xr *= anisotropy;
+
+    return noiseFn(xr, yr);
 }
 
 // --- Math Scope Trick ---

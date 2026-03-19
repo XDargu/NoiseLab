@@ -141,6 +141,44 @@ class SimplexNode extends NoiseNode {
 }
 LiteGraph.registerNodeType("Generator/Simplex",SimplexNode);
 
+// --- Directional Node ---
+class DirectionalNoiseNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("noise","array");
+        this.properties = { frequency: 5, stretch: 20, amplitude: 1, offset: 0, angle: 0 };
+        this.addWidget("slider","Frequency",this.properties.frequency,{min:0,max:20,property:"frequency"});
+        this.addWidget("slider","Stretch",this.properties.stretch,{min:0,max:50,property:"stretch"});
+        this.addWidget("slider","Amplitude",this.properties.amplitude,{min:0,max:5,property:"amplitude"});
+        this.addWidget("slider","Offset",this.properties.offset,{min:0,max:5,property:"offset"});
+        this.addWidget("slider","Angle",this.properties.angle,{min:0,max: 360,property:"angle"});
+        this.simplex = new SimplexNoise();
+        this.title="DirectionalNoise";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const freq = this.properties.frequency;
+        const offset = this.properties.offset;
+        const angle = this.properties.angle / 360 * Math.PI * 2;
+        const stretch = this.properties.stretch;
+        let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
+
+        for(let y=0;y<HEIGHT;y++){
+            for(let x=0;x<WIDTH;x++){
+                let nx=x/WIDTH;
+                let ny=y/HEIGHT;
+                const val = directionalNoise((x, y) => { return this.simplex.noise2D(x*freq + offset, y*freq + offset) }, nx, ny, angle, stretch);
+                noiseArray[y*WIDTH+x] = val;
+            }
+        }
+
+        this.setOutputData(0,noiseArray);
+        this.drawPreview(noiseArray);
+    }
+}
+LiteGraph.registerNodeType("Generator/DirectionalNoise",DirectionalNoiseNode);
+
 class FormulaXYNode extends NoiseNode {
     constructor(){
         super();
@@ -195,7 +233,11 @@ function executeBinaryOp(node, func)
 {
     const a=node.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
     const b=node.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
-    const out=a.map((v,i)=>func(v,b[i]));
+    const out = a.map((v, i) => {
+        const x = i % WIDTH;
+        const y = i / WIDTH;
+        return func(v, b[i], x / WIDTH, y / HEIGHT);
+    });
     node.setOutputData(0,out);
     node.drawPreview(out);
 }
@@ -263,8 +305,8 @@ class Formula2Node extends NoiseNode {
         initBinaryOp(this, "Formula2")
     }
     onExecute(){
-        const f = compile(this.properties.formula, ["a", "b"]);
-        executeBinaryOp(this, (a,b)=>f(a, b))
+        const f = compile(this.properties.formula, ["a", "b", "x", "y"]);
+        executeBinaryOp(this, (a,b,x,y)=>f(a, b, x, y))
     }
 }
 LiteGraph.registerNodeType(`Function/Formula2`, Formula2Node);
@@ -281,7 +323,11 @@ function initUnaryOp(node, name)
 function executeUnaryOp(node, func)
 {
     const a=node.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-    const out=a.map((v,i)=>func(v));
+    const out = a.map((v, i) => {
+        const x = i % WIDTH;
+        const y = i / WIDTH;
+        return func(v, x / WIDTH, y / HEIGHT);
+    });
     node.setOutputData(0,out);
     node.drawPreview(out);
 }
@@ -305,8 +351,8 @@ class Formula1Node extends NoiseNode {
         initUnaryOp(this, "Formula1")
     }
     onExecute(){
-        const f = compile(this.properties.formula, ["a"]);
-        executeUnaryOp(this, (a)=>f(a))
+        const f = compile(this.properties.formula, ["a", "x", "y"]);
+        executeUnaryOp(this, (a, x, y)=>f(a, x, y))
     }
 }
 LiteGraph.registerNodeType(`Function/Formula1`, Formula1Node);
