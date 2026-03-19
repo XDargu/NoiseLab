@@ -162,13 +162,14 @@ class DirectionalNoiseNode extends NoiseNode {
         const offset = this.properties.offset;
         const angle = this.properties.angle / 360 * Math.PI * 2;
         const stretch = this.properties.stretch;
+        const amp = this.properties.amplitude;
         let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
 
         for(let y=0;y<HEIGHT;y++){
             for(let x=0;x<WIDTH;x++){
                 let nx=x/WIDTH;
                 let ny=y/HEIGHT;
-                const val = directionalNoise((x, y) => { return this.simplex.noise2D(x*freq + offset, y*freq + offset) }, nx, ny, angle, stretch);
+                const val = directionalNoise((x, y) => { return this.simplex.noise2D(x*freq + offset, y*freq + offset)*amp }, nx, ny, angle, stretch);
                 noiseArray[y*WIDTH+x] = val;
             }
         }
