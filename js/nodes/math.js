@@ -151,3 +151,89 @@ class ClampNode extends NoiseNode {
     }
 }
 LiteGraph.registerNodeType("Math/Clamp",ClampNode);
+
+class SaturateNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input","array");
+        this.addOutput("out","array");
+        this.title = "Saturate";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+
+        for (let i = 0; i < input.length; i++) {
+            const v = input[i];
+            out[i] = v < 0 ? 0 : (v > 1 ? 1 : v);
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Math/Saturate", SaturateNode);
+
+class NormalizeNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input","array");
+        this.addOutput("out","array");
+        this.title = "Normalize";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+
+        let min = Infinity;
+        let max = -Infinity;
+
+        // find min/max
+        for(let i=0;i<input.length;i++){
+            const v = input[i];
+            if(v < min) min = v;
+            if(v > max) max = v;
+        }
+
+        const range = max - min || 1; // avoid div by 0
+
+        // normalize
+        for(let i=0;i<input.length;i++){
+            out[i] = (input[i] - min) / range;
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Math/Normalize", NormalizeNode);
+
+class InvertNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input","array");
+        this.addOutput("out","array");
+        this.title = "Invert";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+
+        for(let i=0;i<input.length;i++){
+            out[i] = 1 - input[i];
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Math/Invert", InvertNode);
