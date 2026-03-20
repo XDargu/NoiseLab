@@ -62,8 +62,8 @@ function syncWidgets(node) {
 const p1=new PerlinNode();
 p1.pos=[10,10];
 p1.properties.frequency = 6.2;
-p1.properties.octaves = 3;
-p1.properties.amplitude=2.6;
+p1.properties.octaves = 4;
+p1.properties.amplitude=3.4;
 p1.properties.offset=2.6;
 graph.add(p1);
 syncWidgets(p1)
@@ -71,14 +71,14 @@ syncWidgets(p1)
 const p2=new PerlinNode();
 p2.pos=[10,350];
 p2.properties.frequency=1.3;
-p2.properties.amplitude=2.4;
+p2.properties.amplitude=4.7;
 p2.properties.offset=2.9;
 graph.add(p2);
 syncWidgets(p2)
 
 const scale1 = new ScaleNode();
 scale1.pos=[270,350];
-scale1.properties.amount = 3.2;
+scale1.properties.amount = 0.2;
 graph.add(scale1);
 syncWidgets(scale1)
 

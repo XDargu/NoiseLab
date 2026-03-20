@@ -92,7 +92,7 @@ class PerlinNode extends NoiseNode {
                     amp*=0.5;
                     freqMult*=2;
                 }
-                noiseArray[y*WIDTH+x] = val;
+                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
             }
         }
         this.setOutputData(0,noiseArray);
@@ -132,7 +132,7 @@ class SimplexNode extends NoiseNode {
                     amp*=0.5;
                     freqMult*=2;
                 }
-                noiseArray[y*WIDTH+x] = val;
+                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
             }
         }
         this.setOutputData(0,noiseArray);
@@ -170,7 +170,7 @@ class DirectionalNoiseNode extends NoiseNode {
                 let nx=x/WIDTH;
                 let ny=y/HEIGHT;
                 const val = directionalNoise((x, y) => { return this.simplex.noise2D(x*freq + offset, y*freq + offset)*amp }, nx, ny, angle, stretch);
-                noiseArray[y*WIDTH+x] = val;
+                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
             }
         }
 
