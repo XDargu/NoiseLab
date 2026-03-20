@@ -406,55 +406,71 @@ LiteGraph.registerNodeType("Function/Clamp",ClampNode);
 
 // Other nodes
 class BlurNode extends NoiseNode {
-    constructor(){
+    constructor() {
         super();
-        this.addInput("value","array");
-        this.addOutput("out","array");
-        this.properties = { amount : 2 };
-        this.addWidget("slider","Amount", this.properties.amount,{min:1,max: 10, property:"amount"});
-        this.title="Blur";
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { amount: 2, passes: 3 };
+        this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, property: "amount" });
+        this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 5, step: 1, property: "passes" });
+        this.title = "Blur";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
-    
-    onExecute(){
 
-        
-        const input=this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const amount = Math.max(1, Math.floor(this.properties.amount));
-        const out = new Array(WIDTH * HEIGHT).fill(0);
+    boxBlur(input, amount) {
+        const temp = new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT).fill(0);
+        const kernelSize = amount*2+1;
 
-        // define a simple box kernel size based on amount
-        const kernelSize = amount * 2 + 1; // e.g., amount=2 => 5x5 kernel
-        const kernelArea = kernelSize * kernelSize;
-
-        // helper to safely get input with edge clamping
-        const sample = (x, y) => {
-            x = Math.max(0, Math.min(WIDTH - 1, x));
-            y = Math.max(0, Math.min(HEIGHT - 1, y));
-            return input[y * WIDTH + x];
-        };
-
-        for (let ypos = 0; ypos < HEIGHT; ypos++) {
-            for (let xpos = 0; xpos < WIDTH; xpos++) {
-                let sum = 0;
-
-                // sum all neighbors within kernel
-                for (let ky = -amount; ky <= amount; ky++) {
-                    for (let kx = -amount; kx <= amount; kx++) {
-                        sum += sample(xpos + kx, ypos + ky);
-                    }
-                }
-
-                // average to get blurred value
-                out[ypos * WIDTH + xpos] = sum / kernelArea;
+        // Horizontal pass
+        for(let y=0;y<HEIGHT;y++){
+            let sum=0;
+            for(let kx=-amount;kx<=amount;kx++){
+                let x = Math.max(0, Math.min(WIDTH-1, kx));
+                sum += input[y*WIDTH + x];
+            }
+            for(let x=0;x<WIDTH;x++){
+                temp[y*WIDTH + x] = sum / kernelSize;
+                let remove = input[y*WIDTH + Math.max(0, x-amount)];
+                let add = input[y*WIDTH + Math.min(WIDTH-1, x+amount+1)];
+                sum = sum - remove + add;
             }
         }
 
-        this.setOutputData(0, out);
+        // Vertical pass
+        for(let x=0;x<WIDTH;x++){
+            let sum=0;
+            for(let ky=-amount;ky<=amount;ky++){
+                let y = Math.max(0, Math.min(HEIGHT-1, ky));
+                sum += temp[y*WIDTH + x];
+            }
+            for(let y=0;y<HEIGHT;y++){
+                out[y*WIDTH + x] = sum / kernelSize;
+                let remove = temp[Math.max(0, y-amount)*WIDTH + x];
+                let add = temp[Math.min(HEIGHT-1, y+amount+1)*WIDTH + x];
+                sum = sum - remove + add;
+            }
+        }
+
+        return out;
+    }
+
+    onExecute() {
+        let input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const amount = Math.max(1, Math.floor(this.properties.amount));
+        const passes = Math.max(1, Math.floor(this.properties.passes));
+
+        let out = input;
+        for(let i=0;i<passes;i++){
+            out = this.boxBlur(out, amount);
+        }
+
+        this.setOutputData(0,out);
         this.drawPreview(out);
     }
 }
-LiteGraph.registerNodeType("Function/Blur",BlurNode);
+
+LiteGraph.registerNodeType("Function/Blur", BlurNode);
 
 class SobelNode extends NoiseNode {
     constructor() {
@@ -750,3 +766,97 @@ class MirrorNode extends NoiseNode {
     }
 }
 LiteGraph.registerNodeType("Transform/Mirror", MirrorNode);
+
+class MaskBlendNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("A","array");
+        this.addInput("B","array");
+        this.addInput("Mask","array");
+        this.addOutput("out","array");
+        this.properties = {};
+        this.title="Mask Blend";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const A = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const B = this.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
+        const mask = this.getInputData(2) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+
+        for(let i=0;i<WIDTH*HEIGHT;i++){
+            out[i] = mask[i]*A[i] + (1-mask[i])*B[i];
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Combine/Mask Blend",MaskBlendNode);
+
+class PixelateNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input","array");
+        this.addOutput("out","array");
+        this.properties = { pixelSize: 8 };
+        this.addWidget("slider","Pixel Size",this.properties.pixelSize,{min:1,max:64,property:"pixelSize"});
+        this.title="Pixelate";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+        const size = Math.max(1, Math.floor(this.properties.pixelSize));
+
+        for(let y=0;y<HEIGHT;y++){
+            for(let x=0;x<WIDTH;x++){
+                const px = Math.floor(x/size)*size;
+                const py = Math.floor(y/size)*size;
+                const val = input[py*WIDTH + px];
+                out[y*WIDTH + x] = val;
+            }
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Transform/Pixelate",PixelateNode);
+
+class CircleNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out","array");
+        this.properties = { radius: 0.25, x:0.5, y:0.5 }; // normalized coords
+        this.addWidget("slider","Radius",this.properties.radius,{min:0,max:0.5,property:"radius"});
+        this.addWidget("slider","X",this.properties.x,{min:0,max:1,property:"x"});
+        this.addWidget("slider","Y",this.properties.y,{min:0,max:1,property:"y"});
+        this.title="Circle";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH*HEIGHT);
+        const cx = this.properties.x*WIDTH;
+        const cy = this.properties.y*HEIGHT;
+        const r = this.properties.radius * Math.min(WIDTH, HEIGHT);
+
+        for(let y=0;y<HEIGHT;y++){
+            for(let x=0;x<WIDTH;x++){
+                const dx = x - cx;
+                const dy = y - cy;
+                out[y*WIDTH + x] = (dx*dx + dy*dy) <= r*r ? 1 : 0;
+            }
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Circle",CircleNode);
