@@ -80,7 +80,7 @@ function renderNoise(noiseArray) {
     const imgData = ctx.createImageData(WIDTH, HEIGHT);
     const isTerrainMode = terrainModeCheck.checked;
     for (let i = 0; i < WIDTH * HEIGHT; i++) {
-        const v = Math.floor((noiseArray[i] + 1) * 127.5);
+        const v = Math.floor(noiseArray[i] * 255);
 
         const col = isTerrainMode ? heightToRGB(v) : null;
         imgData.data[i*4+0] = col?.r || v;

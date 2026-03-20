@@ -33,7 +33,7 @@ class NoiseNode extends LGraphNode {
             for (let x=0;x<w;x++){
                 const nx = Math.floor(x/WIDTH*WIDTH);
                 const ny = Math.floor(y/HEIGHT*HEIGHT);
-                const v = Math.floor((noiseArray[ny*WIDTH+nx]+1)*127.5);
+                const v = Math.floor(noiseArray[ny*WIDTH+nx]*255);
                 const idx = (y*w+x)*4;
                 const col = isTerrainMode ? heightToRGB(v) : null;
 
@@ -540,3 +540,213 @@ class PosterizeNode extends NoiseNode {
 }
 
 LiteGraph.registerNodeType("Function/Posterize", PosterizeNode);
+
+class CheckerboardNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+        this.properties = { size: 32 };
+        this.addWidget("slider", "Size", this.properties.size, { min: 1, max: 128, property: "size" });
+        this.title = "Checkerboard";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH * HEIGHT);
+        const s = Math.max(1, Math.floor(this.properties.size));
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                const val = ((Math.floor(x / s) + Math.floor(y / s)) % 2);
+                out[y * WIDTH + x] = val;
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Noise/Checkerboard", CheckerboardNode);
+
+class WarpNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addInput("warp", "array");
+        this.addOutput("out", "array");
+        this.properties = { intensity: 5 };
+        this.addWidget("slider", "Intensity", this.properties.intensity, { min: 0, max: 50, property: "intensity" });
+        this.title = "Warp";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const warp = this.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+        const intensity = this.properties.intensity;
+
+        const sample = (arr, x, y) => {
+            const ix = Math.max(0, Math.min(WIDTH-1, Math.round(x)));
+            const iy = Math.max(0, Math.min(HEIGHT-1, Math.round(y)));
+            return arr[iy*WIDTH + ix];
+        };
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                const offset = warp[y*WIDTH + x] * intensity;
+                out[y*WIDTH + x] = sample(input, x + offset, y + offset);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Effect/Warp", WarpNode);
+
+class VoronoiNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+        this.properties = { points: 10, seed: 1 };
+        this.addWidget("slider", "Points", this.properties.points, { min: 1, max: 100, step: 1, precision: 0, property: "points" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, precision: 0, property: "seed" });
+        this.title = "Voronoi";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH*HEIGHT);
+        const numPoints = Math.max(1, Math.floor(this.properties.points));
+        const rng = new RNG(this.properties.seed);
+
+        const points = [];
+        for (let i=0; i<numPoints; i++){
+            points.push([rng.nextFloatRange(0, WIDTH), rng.nextFloatRange(0, HEIGHT)]);
+        }
+
+        for (let y=0; y<HEIGHT; y++){
+            for (let x=0; x<WIDTH; x++){
+                let closest = Infinity;
+                for (let p of points){
+                    const dx = x - p[0], dy = y - p[1];
+                    closest = Math.min(closest, Math.sqrt(dx*dx + dy*dy));
+                }
+                out[y*WIDTH + x] = closest / Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Noise/Voronoi", VoronoiNode);
+
+class WorleyNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+        this.properties = { points: 10, seed: 1 };
+        this.addWidget("slider", "Points", this.properties.points, { min: 1, max: 100, step: 1, precision: 0, property: "points" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, precision: 0, property: "seed" });
+        this.title = "Worley Noise";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH * HEIGHT);
+        const numPoints = Math.max(1, Math.floor(this.properties.points));
+        const rng = new RNG(this.properties.seed);
+
+        // generate feature points using seeded RNG
+        const points = [];
+        for (let i = 0; i < numPoints; i++) {
+            points.push([rng.nextFloatRange(0, WIDTH), rng.nextFloatRange(0, HEIGHT)]);
+        }
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                let minDist = Infinity;
+                for (let p of points) {
+                    const dx = x - p[0], dy = y - p[1];
+                    minDist = Math.min(minDist, Math.sqrt(dx*dx + dy*dy));
+                }
+                out[y * WIDTH + x] = minDist / Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Noise/Worley", WorleyNode);
+
+class RotateNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { angle: 0 };
+        this.addWidget("slider", "Angle", this.properties.angle, { min: 0, max: 360, property: "angle" });
+        this.title = "Rotate";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+        const angle = this.properties.angle * Math.PI / 180;
+        const cx = WIDTH/2, cy = HEIGHT/2;
+        const cos = Math.cos(-angle), sin = Math.sin(-angle);
+
+        const sample = (x, y) => {
+            x = Math.max(0, Math.min(WIDTH-1, x));
+            y = Math.max(0, Math.min(HEIGHT-1, y));
+            return input[y*WIDTH + x];
+        };
+
+        for (let y=0; y<HEIGHT; y++) {
+            for (let x=0; x<WIDTH; x++) {
+                const dx = x - cx, dy = y - cy;
+                const sx = Math.round(cos*dx - sin*dy + cx);
+                const sy = Math.round(sin*dx + cos*dy + cy);
+                out[y*WIDTH + x] = sample(sx, sy);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Transform/Rotate", RotateNode);
+
+class MirrorNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { horizontal: true, vertical: false };
+        this.addWidget("toggle", "Horizontal", this.properties.horizontal, { property: "horizontal" });
+        this.addWidget("toggle", "Vertical", this.properties.vertical, { property: "vertical" });
+        this.title = "Mirror";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        const out = new Array(WIDTH*HEIGHT);
+
+        for (let y=0; y<HEIGHT; y++) {
+            for (let x=0; x<WIDTH; x++) {
+                let sx = this.properties.horizontal ? WIDTH-1 - x : x;
+                let sy = this.properties.vertical ? HEIGHT-1 - y : y;
+                out[y*WIDTH + x] = input[sy*WIDTH + sx];
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+LiteGraph.registerNodeType("Transform/Mirror", MirrorNode);
