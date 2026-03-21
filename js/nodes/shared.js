@@ -12,12 +12,16 @@ class NoiseNode extends LGraphNode {
 
     onConnectionsChange()
     {
+        if (isLoadingGraph) return;
+
         this.onExecute();
         this.drawPreview(this.getOutputData(0))
     }
 
     onPropertyChanged()
     { 
+        if (isLoadingGraph) return;
+        
         this.onExecute();
         this.drawPreview(this.getOutputData(0))
         renderNode(this)

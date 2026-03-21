@@ -3,6 +3,13 @@ let isLoadingGraph = false;
 let saveInternal;
 
 const GRAPH_STORAGE_KEY = "noiselab_graphs";
+const LAST_GRAPH_STORAGE_KEY = "noiselab_lastgraph";
+
+// Has graphs
+function hasGraphs()
+{
+    return localStorage.getItem(GRAPH_STORAGE_KEY) != undefined;
+}
 
 // Load graphs from local storage
 function loadAllGraphs()
@@ -31,9 +38,22 @@ function exportGraph(graph, name)
     a.click();
 }
 
+function importGraphFromJSON(json, name, idLabel, display = false)
+{
+    const graphs = loadAllGraphs();
+    const id = "example_" + idLabel;
+    graphs[id] = {name, data: json, pinned:false};
+    saveAllGraphs(graphs);
+    
+    if (display)
+    {
+        renderGraphList();
+        loadGraphById(id);
+    }
+}
+
 function importGraph(file)
 {
-    console.log(file)
     if(!file) return;
 
     const reader = new FileReader();
@@ -82,6 +102,7 @@ function loadGraphById(id)
     isLoadingGraph = false;
     renderNode(graph._nodes_in_order[0]);
     renderGraphList();
+    localStorage.setItem(LAST_GRAPH_STORAGE_KEY, id);
 }
 
 // Auto-save on changes
@@ -169,7 +190,7 @@ function renderGraphList() {
     });
 }
 
-function initGraphManager(graphCanvasEl)
+async function initGraphManager(graphCanvasEl)
 {
     // Create new graph
     document.getElementById("createGraphBtn").addEventListener("click", () => {
@@ -229,6 +250,24 @@ function initGraphManager(graphCanvasEl)
         });
     });
 
-    // Initial render
-    renderGraphList();
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    await sleep(0)
+
+    if (!hasGraphs())
+    {
+        // Load example graphs
+        importGraphFromJSON(exampleEye, "Eye", "eye");
+        importGraphFromJSON(exampleVorRocks, "Voronoi Rocks", "rocks");
+        importGraphFromJSON(exampleIsland, "Island", "island", true);
+    }
+    else
+    {
+        const lastId = localStorage.getItem(LAST_GRAPH_STORAGE_KEY);
+        if (lastId)
+            loadGraphById(lastId);
+        else
+            renderGraphList();
+    }
+    
 }
