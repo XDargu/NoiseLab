@@ -92,7 +92,7 @@ function loadGraphById(id)
 
     const graphs = loadAllGraphs();
     const g = graphs[id];
-    if(!g) return;
+    if(!g) return false;
 
     currentGraphId = id;
     document.getElementById("currentGraphName").innerText = g.name;
@@ -103,6 +103,8 @@ function loadGraphById(id)
     renderNode(graph._nodes_in_order[0]);
     renderGraphList();
     localStorage.setItem(LAST_GRAPH_STORAGE_KEY, id);
+
+    return true;
 }
 
 // Auto-save on changes
@@ -262,7 +264,10 @@ async function initGraphManager(graphCanvasEl)
     {
         const lastId = localStorage.getItem(LAST_GRAPH_STORAGE_KEY);
         if (lastId)
-            loadGraphById(lastId);
+        {
+            if (!loadGraphById(lastId))
+                renderGraphList();
+        }
         else
             renderGraphList();
     }

@@ -263,3 +263,30 @@ body {
 #titlebar button:hover {
   background: #444;
 }
+
+
+#yourGraphsSection {
+    overflow: auto;
+    margin-bottom: 10px;
+}
+
+#noiseLabInfo {
+    padding: 10px;
+    background: #373737;
+    font-size: 13px;
+    margin-top: auto;
+}
+
+#noiseLabInfo a {
+    color: #c8aaba;
+    text-decoration: none;
+    margin-top: 5px;
+}
+
+#noiseLabInfo a:hover {
+    color: #ac6f8f;
+}
+
+#noiseLabInfo .line {
+    margin-top: 0.5em;
+}
