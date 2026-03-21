@@ -8,6 +8,8 @@ const PREVIEW_W = 128;
 const PREVIEW_H = 128;
 const PREVIEW_PADDING = 10;
 
+GPU.init(WIDTH, HEIGHT);
+
 
 // --- Node evaluation ---
 let activeNode = null;
@@ -41,7 +43,13 @@ function renderNode(node){
 
     // render clicked node output
     const output = node?.getOutputData(0);
-    if(output) renderNoise(output);
+    if(output)
+    {
+        if (node.gl)
+            node.drawPreviewTexture(ctx);
+        else
+            renderNoise(output);
+    }
 }
 
 graphCanvas.onNodeSelected = node=>{
