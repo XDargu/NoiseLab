@@ -312,3 +312,19 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555; 
 }
+
+
+/* Custom litegraph css*/
+.graphdialog:not(.litesearchbox) {
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+}
+
+.graphdialog .name {
+    color: white;
+}
+
+.graphdialog button.rounded {
+    border-radius: 2px;
+}
