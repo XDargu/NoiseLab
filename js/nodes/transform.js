@@ -429,3 +429,50 @@ class TileNode extends NoiseNode {
 }
 
 LiteGraph.registerNodeType("Transform/Tile", TileNode);
+
+class DisplaceNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input", "array");
+        this.addInput("dx", "array");
+        this.addInput("dy", "array");
+        this.addOutput("out", "array");
+
+        this.properties = { strength: 20 };
+
+        this.addWidget("slider", "Strength", this.properties.strength, { min: 0, max: 100, property: "strength" });
+
+        this.title = "Displace";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const img = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
+        const dx = this.getInputData(1) || new Array(WIDTH * HEIGHT).fill(0);
+        const dy = this.getInputData(2) || new Array(WIDTH * HEIGHT).fill(0);
+
+        const out = new Array(WIDTH * HEIGHT);
+        const strength = this.properties.strength;
+
+        const sample = (x, y) => {
+            const ix = Math.max(0, Math.min(WIDTH - 1, x | 0));
+            const iy = Math.max(0, Math.min(HEIGHT - 1, y | 0));
+            return img[iy * WIDTH + ix];
+        };
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                const i = y * WIDTH + x;
+                const ox = (dx[i] - 0.5) * strength;
+                const oy = (dy[i] - 0.5) * strength;
+
+                out[i] = sample(x + ox, y + oy);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Transform/Displace", DisplaceNode);

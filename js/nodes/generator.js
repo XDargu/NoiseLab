@@ -7,7 +7,6 @@ class PerlinNode extends NoiseNode {
         this.addWidget("slider","Octaves",this.properties.octaves,{min:0,max:5,step:1,precision:0,property:"octaves"});
         this.addWidget("slider","Amplitude",this.properties.amplitude,{min:0,max:5,property:"amplitude"});
         this.addWidget("slider","Offset",this.properties.offset,{min:0,max:5,property:"offset"});
-        this.simplex = new SimplexNoise();
         this.title="Perlin";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
@@ -179,6 +178,123 @@ class CheckerboardNode extends NoiseNode {
     }
 }
 LiteGraph.registerNodeType("Generator/Checkerboard", CheckerboardNode);
+
+class HexGridNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+
+        this.properties = { scale: 40 };
+
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 5, max: 200, property: "scale" });
+
+        this.title = "Hex Grid";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    hexDist(x, y) {
+        x = Math.abs(x);
+        y = Math.abs(y);
+        return Math.max(x * 0.8660254 + y * 0.5, y);
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH * HEIGHT);
+        const s = this.properties.scale;
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+
+                // Normalize coords
+                let px = x / s;
+                let py = y / s;
+
+                // Offset grid
+                px -= Math.floor(py) * 0.5;
+
+                const gx = Math.floor(px);
+                const gy = Math.floor(py);
+
+                const fx = px - gx - 0.5;
+                const fy = py - gy - 0.5;
+
+                const d = this.hexDist(fx, fy);
+
+                out[y * WIDTH + x] = d < 0.5 ? 1 : 0;
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Hex Grid", HexGridNode);
+
+class TruchetNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+
+        this.properties = { scale: 40, seed: 1, thickness: 0.08 };
+
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 10, max: 100, property: "scale" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+        this.addWidget("slider", "Thickness", this.properties.thickness, { min: 0.01, max: 0.3, property: "thickness" });
+
+        this.title = "Truchet Tiles";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    hash(x, y, seed) {
+        let h = x * 374761393 + y * 668265263 + seed * 982451653;
+        h = (h ^ (h >> 13)) * 1274126177;
+        return (h ^ (h >> 16)) >>> 0;
+    }
+
+    onExecute() {
+        const out = new Array(WIDTH * HEIGHT);
+        const s = this.properties.scale;
+        const seed = this.properties.seed;
+        const thickness = this.properties.thickness;
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+
+                const tx = Math.floor(x / s);
+                const ty = Math.floor(y / s);
+
+                // Stable random orientation per tile
+                const h = this.hash(tx, ty, seed);
+                const flip = (h & 1) === 0;
+
+                const lx = (x % s) / s;
+                const ly = (y % s) / s;
+
+                let d;
+
+                if (flip) {
+                    // bottom-left - top-right
+                    const d1 = Math.hypot(lx, ly);
+                    const d2 = Math.hypot(lx - 1, ly - 1);
+                    d = Math.min(d1, d2);
+                } else {
+                    // top-left - bottom-right
+                    const d1 = Math.hypot(lx - 1, ly);
+                    const d2 = Math.hypot(lx, ly - 1);
+                    d = Math.min(d1, d2);
+                }
+
+                out[y * WIDTH + x] = Math.abs(d - 0.5) < thickness ? 1 : 0;
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Truchet Tiles", TruchetNode);
 
 class StripesNode extends NoiseNode {
     constructor() {
@@ -507,3 +623,61 @@ class DotsNode extends NoiseNode {
 }
 
 LiteGraph.registerNodeType("Generator/Dots",DotsNode);
+
+class RidgedNoiseNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+
+        this.properties = { scale: 50, octaves: 4, seed: 1 };
+
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 1, max: 200, property: "scale" });
+        this.addWidget("slider", "Octaves", this.properties.octaves, { min: 1, max: 8, step: 1, property: "octaves" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+
+        this.title = "Ridged Noise";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    noise(x, y) {
+        return Math.abs(this.simplex.noise2D(x, y));
+    }
+
+    onExecute() {
+        this.simplex = new SimplexNoise(this.properties.seed);
+
+        const out = new Array(WIDTH * HEIGHT);
+        const scale = this.properties.scale;
+        const octaves = this.properties.octaves;
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+
+                let nx = x / scale;
+                let ny = y / scale;
+
+                let value = 0;
+                let amp = 1;
+                let freq = 1;
+
+                for (let o = 0; o < octaves; o++) {
+                    let n = this.noise(nx * freq, ny * freq);
+                    n = 1 - n; // ridged
+                    n *= n;
+
+                    value += n * amp;
+
+                    freq *= 2;
+                    amp *= 0.5;
+                }
+
+                out[y * WIDTH + x] = value;
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Ridged Noise", RidgedNoiseNode);
