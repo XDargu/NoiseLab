@@ -224,7 +224,7 @@ async function initGraphManager(graphCanvasEl)
     });
 
     // Auto-save on graph changes (LiteGraph)
-    graph.onNodeAdded = autoSaveGraph;
+    graph.onNodeAdded = (node) => { renderNode(node, false); autoSaveGraph(); };
     graph.onNodeRemoved = autoSaveGraph;
     graph.onNodeConnectionChange = autoSaveGraph;
     graphCanvas.onNodeMoved = autoSaveGraph;

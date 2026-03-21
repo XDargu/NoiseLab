@@ -35,7 +35,7 @@ resizeGraph();
 
 
 // --- Click node to preview full canvas ---
-function renderNode(node){
+function renderNode(node, select = true){
     if (!node) return;
     
     // execute all nodes
@@ -43,7 +43,7 @@ function renderNode(node){
 
     // render clicked node output
     const output = node?.getOutputData(0);
-    if(output)
+    if(output && select)
     {
         if (node.gl)
             node.drawPreviewTexture(ctx);
