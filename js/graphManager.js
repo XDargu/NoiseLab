@@ -122,9 +122,6 @@ function autoSaveGraph()
         const graphs = loadAllGraphs();
         graphs[currentGraphId].data = graph.serialize();
 
-        console.log("Saving all")
-        console.log(graphs[currentGraphId].data)
-
         saveAllGraphs(graphs);
     }, 100)
     

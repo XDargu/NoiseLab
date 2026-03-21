@@ -21,10 +21,13 @@ class NoiseNode extends LGraphNode {
     onPropertyChanged()
     { 
         if (isLoadingGraph) return;
-        
+
         this.onExecute();
         this.drawPreview(this.getOutputData(0))
         renderNode(this)
+
+        // Needed to save changes of props
+        autoSaveGraph();
     }
 
     drawPreview(noiseArray) {
