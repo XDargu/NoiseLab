@@ -445,3 +445,65 @@ class CircleNode extends NoiseNode {
 }
 
 LiteGraph.registerNodeType("Generator/Circle",CircleNode);
+
+class DotsNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addOutput("out","array");
+        this.properties = {
+            spacing: 0.1,   // 0..1 normalized spacing
+            radius: 0.03,   // radius of dots
+            softness: 0.01, // edge softness
+            stagger: false
+        };
+        this.addWidget("slider","Spacing",this.properties.spacing,{min:0.01,max:0.5,property:"spacing"});
+        this.addWidget("slider","Radius",this.properties.radius,{min:0.005,max:0.2,property:"radius"});
+        this.addWidget("slider","Softness",this.properties.softness,{min:0,max:0.1,property:"softness"});
+        this.addWidget("toggle","Stagger",this.properties.stagger,{property:"stagger"});
+        this.title="Dots";
+        this.size[1]+=PREVIEW_H+PREVIEW_PADDING;
+    }
+
+    onExecute(){
+        const out = new Array(WIDTH*HEIGHT);
+
+        const spacing = this.properties.spacing;
+        const radius = this.properties.radius;
+        const soft = this.properties.softness;
+        const stagger = this.properties.stagger;
+
+        const smoothstep = (a,b,x)=>{
+            const t = Math.max(0,Math.min(1,(x-a)/(b-a)));
+            return t*t*(3-2*t);
+        }
+
+        for(let y=0;y<HEIGHT;y++){
+            for(let x=0;x<WIDTH;x++){
+                let nx = x/WIDTH;
+                let ny = y/HEIGHT;
+
+                // calculate cell coordinates
+                let cx = Math.floor(nx/spacing);
+                let cy = Math.floor(ny/spacing);
+
+                // apply stagger
+                let offsetX = (stagger && (cy%2)) ? spacing*0.5 : 0;
+
+                let dx = nx - (cx*spacing + offsetX);
+                let dy = ny - (cy*spacing);
+                let dist = Math.sqrt(dx*dx + dy*dy);
+
+                if(soft>0){
+                    out[y*WIDTH+x] = 1 - smoothstep(radius-soft, radius+soft, dist);
+                } else {
+                    out[y*WIDTH+x] = dist < radius ? 1 : 0;
+                }
+            }
+        }
+
+        this.setOutputData(0,out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Dots",DotsNode);

@@ -34,6 +34,8 @@ resizeGraph();
 
 // --- Click node to preview full canvas ---
 function renderNode(node){
+    if (!node) return;
+    
     // execute all nodes
     graph._nodes_in_order.forEach(n => n.onExecute());
 
@@ -142,3 +144,4 @@ addNode.connect(0, addNode2, 0)
 clamp2.connect(0, addNode2, 1)
 
 renderNode(addNode2)
+initGraphManager(graphCanvasEl)

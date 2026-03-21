@@ -4,147 +4,54 @@
 <meta charset="UTF-8">
 <title>NoiseLab</title>
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-<style>
-  body { margin: 0; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
-
-  /* Top title bar */
-  #titlebar {
-    height: 50px;
-    background: #333;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
-    font-size: 1.2em;
-    flex-shrink: 0;
-    user-select: none;
-  }
-  #titlebar span { margin-left: 10px; }
-  #titlebar img { height: 30px; }
-
-  /* Main content area */
-  #content {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-
-  /* Left panel (graph) */
-  #graph-container {
-    flex: 1;
-    background: #111;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* Right panel (final canvas) */
-  #canvas-container {
-    width: 400px;
-    background: #222;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border-left: 2px solid #444;
-  }
-
-  /* LiteGraph canvas fills left panel */
-  #graph { width: 100%; height: 100%; display: block; }
-
-  /* Final noise canvas */
-  #noiseCanvas { border: 1px solid #555; }
-
-
-    /* Checkbox*/
-    .checkbox-container { margin-left: auto;}
-
-    .checkbox-container {
-        display: block;
-        position: relative;
-        padding-left: 45px;
-        cursor: pointer;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-
-    /* Hide the browser's default checkbox */
-    .checkbox-container input {
-        position: absolute;
-        opacity: 0;
-        cursor: pointer;
-        height: 0;
-        width: 0;
-    }
-
-    /* Create a custom checkbox */
-    .checkmark {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 20px;
-        width: 20px;
-        background-color: #eee;
-    }
-
-    /* On mouse-over, add a grey background color */
-    .checkbox-container:hover input ~ .checkmark {
-        background-color: #ccc;
-    }
-
-    /* When the checkbox is checked, add a blue background */
-    .checkbox-container input:checked ~ .checkmark {
-        background-color: #B16F8F;
-    }
-
-    /* Create the checkmark/indicator (hidden when not checked) */
-    .checkmark:after {
-        content: "";
-        position: absolute;
-        display: none;
-    }
-
-    /* Show the checkmark when checked */
-    .checkbox-container input:checked ~ .checkmark:after {
-        display: block;
-    }
-
-    /* Style the checkmark/indicator */
-    .checkbox-container .checkmark:after {
-        left: 6px;
-        top: 2px;
-        width: 5px;
-        height: 10px;
-        border: solid white;
-        border-width: 0 3px 3px 0;
-        -webkit-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
-        transform: rotate(45deg);
-    }
-</style>
+<link rel="stylesheet" href="css/noiselab.css">
 </head>
 <body>
 
-<div id="titlebar">
-  <img src="img/icon.png">
-  <span>NoiseLab</span>
+<!-- Wrap everything under a main container -->
+<div id="main-container" style="display:flex; flex:1; height:100vh; overflow:hidden;">
 
-  <label class="checkbox-container">Terrain mode
-    <input type="checkbox" checked="checked" id="terrain-mode">
-    <span class="checkmark"></span>
-  </label>
+  <!-- Graph library sidebar -->
+  <div id="graph-sidebar">
+    <button id="createGraphBtn"><i class="fas fa-plus"></i> Create New Graph</button>
+    
+    <input type="text" id="graphSearch" placeholder="Search your graphs...">
+
+    <div id="yourGraphsSection">
+      <h4 class="section-title">Your Graphs</h4>
+      <ul id="yourGraphsList"></ul>
+    </div>
+  </div>
+
+  <!-- Main editor area -->
+  <div id="editor-area" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <div id="titlebar">
+      <img src="img/icon.png">
+      <span id="currentGraphName" contenteditable="true">Untitled</span>
+      
+      <button id="exportBtn"><i class="fas fa-file-export"></i> Export</button>
+      <button id="importBtn"><i class="fas fa-file-import"></i> Import</button>
+      
+      <label class="checkbox-container">Terrain mode
+        <input type="checkbox" checked="checked" id="terrain-mode">
+        <span class="checkmark"></span>
+      </label>
+    </div>
+
+    <div id="content" style="flex:1; display:flex; overflow:hidden;">
+      <div id="graph-container" style="flex:1; background:#111; display:flex; flex-direction:column; overflow:hidden;">
+        <canvas id="graph"></canvas>
+      </div>
+      <div id="canvas-container">
+        <canvas id="noiseCanvas" width="256" height="256"></canvas>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div id="content">
-  <div id="graph-container">
-    <canvas id="graph"></canvas>
-  </div>
-  <div id="canvas-container">
-    <canvas id="noiseCanvas" width="256" height="256"></canvas>
-  </div>
-</div>
+<input type="file" id="fileInput" accept=".json" style="display:none">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 <!-- LiteGraph -->
 <link rel="stylesheet" href="css/external/litegraph.css">
@@ -163,6 +70,7 @@
 <script src="js/nodes/math.js"></script>
 <script src="js/nodes/transform.js"></script>
 <script src="js/nodes.js"></script>
+<script src="js/graphManager.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

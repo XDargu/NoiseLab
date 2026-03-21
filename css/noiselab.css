@@ -1,0 +1,259 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top title bar */
+#titlebar {
+  height: 50px;
+  background: #333;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 1.2em;
+  flex-shrink: 0;
+  user-select: none;
+}
+#titlebar span {
+  margin-left: 10px;
+}
+#titlebar img {
+  height: 30px;
+}
+
+/* Main content area */
+#content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Left panel (graph) */
+#graph-container {
+  flex: 1;
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Right panel (final canvas) */
+#canvas-container {
+  width: 256px;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-left: 2px solid #444;
+}
+
+/* LiteGraph canvas fills left panel */
+#graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Final noise canvas */
+#noiseCanvas {
+  border: 1px solid #555;
+}
+
+/* Checkbox*/
+.checkbox-container {
+  display: block;
+  position: relative;
+  padding-left: 45px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.checkbox-container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #b16f8f;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.checkbox-container .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+#graph-sidebar {
+  width: 250px;
+  background: #222;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  flex-shrink: 0;
+  border-right: 2px solid #444;
+  overflow-y: auto;
+}
+
+#graph-sidebar .section-title {
+    color: #777;
+    font-size: 14px;
+    font-weight: 100;
+    margin-bottom: 10px;
+}
+
+#graph-sidebar button {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#graph-sidebar button:hover {
+  background: #444;
+}
+
+#graph-sidebar input {
+  background: #111;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+#graph-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#graph-sidebar li {
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#graph-sidebar li.selected {
+  background: #4c4c4c;
+}
+
+#graph-sidebar li:hover {
+  background: #333;
+}
+
+.graph-actions {
+  display: none;
+  gap: 5px;
+}
+
+#graph-sidebar li .graph-title {
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+#graph-sidebar li:hover .graph-actions {
+  display: flex;
+}
+
+#graph-sidebar .graph-actions button {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  margin-left: 2px;
+}
+
+#graph-sidebar .graph-actions button .fa-trash {
+    color: rgb(218, 126, 126);
+}
+
+#graph-sidebar .graph-actions button:hover {
+  color: #fff;
+}
+
+.pinned-icon {
+  margin-right: 10px;
+  color: #ac6f8f;
+}
+
+#exportBtn {
+  margin-left: auto;
+}
+
+#titlebar button {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#titlebar button:hover {
+  background: #444;
+}
