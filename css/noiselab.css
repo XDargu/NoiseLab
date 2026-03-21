@@ -7,7 +7,7 @@ body {
 }
 
 /* Top title bar */
-#titlebar {
+#titlebar, #sidetitle {
   height: 50px;
   background: #333;
   color: #fff;
@@ -21,8 +21,14 @@ body {
 #titlebar span {
   margin-left: 10px;
 }
-#titlebar img {
+#titlebar img,
+#sidetitle img {
   height: 30px;
+}
+
+#sidetitle {
+    margin: -10px;
+    margin-bottom: 10px;
 }
 
 /* Main content area */
@@ -146,7 +152,7 @@ body {
 }
 
 #graph-sidebar .section-title {
-    color: #777;
+    color: #a1a1a1;
     font-size: 14px;
     font-weight: 100;
     margin-bottom: 10px;

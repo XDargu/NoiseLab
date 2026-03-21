@@ -2,17 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NoiseLab</title>
-<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-<link rel="stylesheet" href="css/noiselab.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NoiseLab - Interactive Graph and Noise Editor</title>
+  <meta name="description" content="NoiseLab is a web graph-based noise editor for creating procedural textures and generative content. Explore, and experiment with noise functions.">
+  <meta name="keywords" content="noise editor, procedural textures, graph editor, perlin noise, simplex noise, generative art, web-based editor">
+  <meta name="author" content="Daniel Armesto">
+
+  <!-- JSON-LD structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "NoiseLab",
+    "url": "https://xdargu.github.io/NoiseLab/",
+    "description": "Web-based graph editor for creating procedural textures, terrains, and generative content.",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web",
+    "author": {
+      "@type": "Person",
+      "name": "Daniel Armesto"
+    }
+  }
+  </script>
+
+  <!-- Open Graph for social sharing -->
+  <meta property="og:title" content="NoiseLab - Interactive Graph and Noise Editor">
+  <meta property="og:description" content="Create procedural textures and generative content online with NoiseLab, the web-based graph editor.">
+  <meta property="og:image" content="https://xdargu.github.io/NoiseLab/img/og_image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NoiseLab - Interactive Graph and Noise Editor">
+  <meta name="twitter:description" content="Create procedural textures and generative content online with NoiseLab.">
+  <meta name="twitter:image" content="https://xdargu.github.io/NoiseLab/img/og_image.png">
+
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/noiselab.css">
 </head>
 <body>
 
 <!-- Wrap everything under a main container -->
-<div id="main-container" style="display:flex; flex:1; height:100vh; overflow:hidden;">
+<main id="main-container" style="display:flex; flex:1; height:100vh; overflow:hidden;">
 
   <!-- Graph library sidebar -->
-  <div id="graph-sidebar">
+  <aside id="graph-sidebar">
+    <div id="sidetitle">
+      <img src="img/complete-logo.png" alt="noiselab and logo">
+    </div>
     <button id="createGraphBtn"><i class="fas fa-plus"></i> Create New Graph</button>
     
     <input type="text" id="graphSearch" placeholder="Search your graphs...">
@@ -21,12 +59,11 @@
       <h4 class="section-title">Your Graphs</h4>
       <ul id="yourGraphsList"></ul>
     </div>
-  </div>
+  </aside>
 
   <!-- Main editor area -->
-  <div id="editor-area" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+  <section id="editor-area" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
     <div id="titlebar">
-      <img src="img/icon.png">
       <span id="currentGraphName" contenteditable="true">Untitled</span>
       
       <button id="exportBtn"><i class="fas fa-file-export"></i> Export</button>
@@ -46,8 +83,8 @@
         <canvas id="noiseCanvas" width="256" height="256"></canvas>
       </div>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
 <input type="file" id="fileInput" accept=".json" style="display:none">
 
