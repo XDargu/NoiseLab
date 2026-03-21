@@ -8,70 +8,81 @@ function initBinaryOp(node, name)
     node.size[1] += PREVIEW_H + PREVIEW_PADDING;
 }
 
-function executeBinaryOp(node, func)
-{
-    const a=node.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-    const b=node.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
-    const out = a.map((v, i) => {
-        const x = i % WIDTH;
-        const y = i / WIDTH;
-        return func(v, b[i], x / WIDTH, y / HEIGHT);
-    });
-    node.setOutputData(0,out);
-    node.drawPreview(out);
+function executeBinaryOp(node, op, key=node.title, uniformValues = {}, uniformDeclarations = []) {
+    node.updateInputTexture(0, node.getInputData(0));
+    node.updateInputTexture(1, node.getInputData(1));
+
+    const uniformsCode = uniformDeclarations.join("\n");
+
+    const fs = `#version 300 es
+    precision highp float;
+    ${uniformsCode}
+    uniform sampler2D tex0;
+    uniform sampler2D tex1;
+    in vec2 vUv;
+    out vec4 fragColor;
+    void main(){
+        float a = texture(tex0, vUv).r;
+        float b = texture(tex1, vUv).r;
+        fragColor = vec4(${op}, 0.0, 0.0, 1.0);
+    }`;
+
+    node.runShader(key, fs, 2, uniformValues);
+    node.setOutputTexture();
+    node.drawPreviewTexture();
 }
 
-class AddNode extends NoiseNode {
+class AddNode extends GPUNodeBase {
     constructor(){
         super();
         initBinaryOp(this, "Add")
     }
     onExecute(){
-        executeBinaryOp(this, (a,b)=>a+b)
+        executeBinaryOp(this, 'a+b')
     }
 }
 LiteGraph.registerNodeType(`Math/Add`, AddNode);
 
-class MultiplyNode extends NoiseNode {
+class MultiplyNode extends GPUNodeBase {
     constructor(){
         super();
         initBinaryOp(this, "Multiply")
     }
     onExecute(){
-        executeBinaryOp(this, (a,b)=>a*b)
+        executeBinaryOp(this, 'a*b')
     }
 }
 LiteGraph.registerNodeType(`Math/Multiply`, MultiplyNode);
 
-class SubtractNode extends NoiseNode {
+class SubtractNode extends GPUNodeBase {
     constructor(){
         super();
         initBinaryOp(this, "Subtract")
     }
     onExecute(){
-        executeBinaryOp(this, (a,b)=>a-b)
+        executeBinaryOp(this, 'a-b')
     }
 }
 LiteGraph.registerNodeType(`Math/Subtract`, SubtractNode);
 
-class MaxNode extends NoiseNode {
+class MaxNode extends GPUNodeBase {
     constructor(){
         super();
         initBinaryOp(this, "Max")
     }
     onExecute(){
-        executeBinaryOp(this, (a,b)=>Math.max(a,b))
+        executeBinaryOp(this, 'max(a,b)')
     }
 }
 LiteGraph.registerNodeType(`Math/Max`, MaxNode);
 
-class MinNode extends NoiseNode {
+class MinNode extends GPUNodeBase {
     constructor(){
         super();
         initBinaryOp(this, "Min")
     }
     onExecute(){
-        executeBinaryOp(this, (a,b)=>Math.min(a,b))
+        executeBinaryOp(this, 'min(a,b)')
     }
 }
 LiteGraph.registerNodeType(`Math/Min`, MinNode);
@@ -85,30 +96,39 @@ function initUnaryOp(node, name)
     node.size[1] += PREVIEW_H + PREVIEW_PADDING;
 }
 
-function executeUnaryOp(node, func)
-{
-    const a=node.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-    const out = a.map((v, i) => {
-        const x = i % WIDTH;
-        const y = i / WIDTH;
-        return func(v, x / WIDTH, y / HEIGHT);
-    });
-    node.setOutputData(0,out);
-    node.drawPreview(out);
+function executeUnaryOp(node, op, key=node.title, uniformValues = {}, uniformDeclarations = []) {
+    node.updateInputTexture(0, node.getInputData(0));
+
+    const uniformsCode = uniformDeclarations.join("\n");
+
+    const fs = `#version 300 es
+    precision highp float;
+    ${uniformsCode}
+    uniform sampler2D tex0;
+    in vec2 vUv;
+    out vec4 fragColor;
+    void main(){
+        float a = texture(tex0, vUv).r;
+        fragColor = vec4(${op}, 0.0, 0.0, 1.0);
+    }`;
+
+    node.runShader(key, fs, 1, uniformValues);
+    node.setOutputTexture();
+    node.drawPreviewTexture();
 }
 
-class AbsNode extends NoiseNode {
+class AbsNode extends GPUNodeBase {
     constructor(){
         super();
         initUnaryOp(this, "Abs")
     }
     onExecute(){
-        executeUnaryOp(this, (a)=>Math.abs(a))
+        executeUnaryOp(this, 'abs(a)')
     }
 }
 LiteGraph.registerNodeType(`Math/Abs`, AbsNode);
 
-class ScaleNode extends NoiseNode {
+class ScaleNode extends GPUNodeBase {
     constructor(){
         super();
         this.addInput("value","array");
@@ -120,16 +140,18 @@ class ScaleNode extends NoiseNode {
     }
     
     onExecute(){
-        const input=this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const amount=this.properties.amount;
-        const out=input.map(v=>v*amount);
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        executeUnaryOp(
+            this,
+            'a*amount',
+            'scale_uniform',
+            { amount: this.properties.amount },
+            ['uniform float amount;']
+        );
     }
 }
 LiteGraph.registerNodeType("Math/Scale",ScaleNode);
 
-class ClampNode extends NoiseNode {
+class ClampNode extends GPUNodeBase {
     constructor(){
         super();
         this.addInput("value","array");
@@ -142,17 +164,18 @@ class ClampNode extends NoiseNode {
     }
     
     onExecute(){
-        const input=this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const min=this.properties.min;
-        const max=this.properties.max;
-        const out=input.map(v=>Math.max(min,Math.min(max,v)));
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        executeBinaryOp(
+            this,
+            'clamp(a, minValue, maxValue)',
+            'clamp_uniforms',
+            { minValue: this.properties.min, maxValue: this.properties.max },
+            ['uniform float minValue;', 'uniform float maxValue;']
+        );
     }
 }
 LiteGraph.registerNodeType("Math/Clamp",ClampNode);
 
-class SaturateNode extends NoiseNode {
+class SaturateNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input","array");
@@ -162,22 +185,13 @@ class SaturateNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-
-        for (let i = 0; i < input.length; i++) {
-            const v = input[i];
-            out[i] = v < 0 ? 0 : (v > 1 ? 1 : v);
-        }
-
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        executeUnaryOp(this, `clamp(a, 0.0, 1.0)`);
     }
 }
 
 LiteGraph.registerNodeType("Math/Saturate", SaturateNode);
 
-class NormalizeNode extends NoiseNode {
+/*class NormalizeNode extends NoiseNode {
     constructor() {
         super();
         this.addInput("input","array");
@@ -212,9 +226,9 @@ class NormalizeNode extends NoiseNode {
     }
 }
 
-LiteGraph.registerNodeType("Math/Normalize", NormalizeNode);
+LiteGraph.registerNodeType("Math/Normalize", NormalizeNode);*/
 
-class InvertNode extends NoiseNode {
+class InvertNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input","array");
@@ -224,15 +238,7 @@ class InvertNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-
-        for(let i=0;i<input.length;i++){
-            out[i] = 1 - input[i];
-        }
-
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        executeUnaryOp(this, `1.0 - a`);
     }
 }
 

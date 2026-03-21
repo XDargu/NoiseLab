@@ -15,7 +15,7 @@ GPU.init(WIDTH, HEIGHT);
 let activeNode = null;
 
 const terrainModeCheck = document.getElementById("terrain-mode")
-terrainModeCheck.onchange = () => { renderNode(graph.activeNode) }
+terrainModeCheck.onchange = () => { renderNode(graph.activeNode); }
 
 // --- Graph setup ---
 const graphCanvasEl = document.getElementById("graph");
@@ -39,7 +39,7 @@ function renderNode(node){
     if (!node) return;
     
     // execute all nodes
-    graph._nodes_in_order.forEach(n => n.onExecute());
+    graph._nodes_in_order.forEach(n => { if (n.onExecute) n.onExecute() });
 
     // render clicked node output
     const output = node?.getOutputData(0);

@@ -12,7 +12,17 @@ class MinMaxDisplayNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0);
+        this._min = 0;
+        this._max = 0;
+
+        let input = this.getInputData(0);
+        if (!input) return;
+
+        // if GPU texture, read pixels synchronously
+        if (input instanceof WebGLTexture) {
+            input = readTexture(input); // returns Float32Array
+        }
+
         if (!input || input.length === 0) return;
 
         let min = Infinity;
@@ -78,8 +88,13 @@ class HistogramDisplayNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0);
-        if (!input || input.length === 0) return;
+        let input = this.getInputData(0);
+        if (!input) return;
+
+        // if GPU texture, read pixels synchronously
+        if (input instanceof WebGLTexture) {
+            input = readTexture(input); // returns Float32Array
+        }
 
         const bins = Math.floor(this.properties.bins);
         const hist = this._hist;

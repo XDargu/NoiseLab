@@ -1,158 +1,390 @@
-class PerlinNode extends NoiseNode {
+class PerlinNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("noise","array");
-        this.properties = { frequency: 5, octaves: 1, amplitude: 1, offset: 0 };
+        this.properties = { frequency: 5, octaves: 1, amplitude: 1, offset: 0, seed: 1 };
         this.addWidget("slider","Frequency",this.properties.frequency,{min:0,max:20,property:"frequency"});
-        this.addWidget("slider","Octaves",this.properties.octaves,{min:0,max:5,step:1,precision:0,property:"octaves"});
+        this.addWidget("slider","Octaves",this.properties.octaves,{min:1,max:8,step:1,precision:0,property:"octaves"});
         this.addWidget("slider","Amplitude",this.properties.amplitude,{min:0,max:5,property:"amplitude"});
         this.addWidget("slider","Offset",this.properties.offset,{min:0,max:5,property:"offset"});
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
         this.title="Perlin";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
     onExecute() {
-        const freq = this.properties.frequency;
-        const octaves = this.properties.octaves;
-        const offset = this.properties.offset;
-        let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
+        const frag = `#version 300 es
+        precision highp float;
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                let nx=x/WIDTH;
-                let ny=y/HEIGHT;
-                let val=0, amp=this.properties.amplitude, freqMult=1;
-                for(let o=0;o<octaves;o++){
-                    val += noise.perlin2(nx*freq*freqMult + offset, ny*freq*freqMult + offset)*amp;
-                    amp*=0.5;
-                    freqMult*=2;
-                }
-                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
-            }
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform float frequency;
+        uniform int octaves;
+        uniform float amplitude;
+        uniform float offset;
+        uniform float seed;
+
+        // -------------------------
+        // Hash / random
+        // -------------------------
+        float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031 + seed * 0.13);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
         }
-        this.setOutputData(0,noiseArray);
-        this.drawPreview(noiseArray);
+
+        vec2 grad(vec2 p) {
+            float h = hash(p) * 6.2831853;
+            return vec2(cos(h), sin(h));
+        }
+
+        // -------------------------
+        // Fade + lerp
+        // -------------------------
+        float fade(float t) {
+            return t*t*t*(t*(t*6.0-15.0)+10.0);
+        }
+
+        float lerp(float a, float b, float t) {
+            return mix(a, b, t);
+        }
+
+        // -------------------------
+        // Perlin 2D
+        // -------------------------
+        float perlin(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+
+            vec2 g00 = grad(i + vec2(0.0, 0.0));
+            vec2 g10 = grad(i + vec2(1.0, 0.0));
+            vec2 g01 = grad(i + vec2(0.0, 1.0));
+            vec2 g11 = grad(i + vec2(1.0, 1.0));
+
+            float n00 = dot(g00, f - vec2(0.0, 0.0));
+            float n10 = dot(g10, f - vec2(1.0, 0.0));
+            float n01 = dot(g01, f - vec2(0.0, 1.0));
+            float n11 = dot(g11, f - vec2(1.0, 1.0));
+
+            float u = fade(f.x);
+            float v = fade(f.y);
+
+            return lerp(
+                lerp(n00, n10, u),
+                lerp(n01, n11, u),
+                v
+            );
+        }
+
+        // -------------------------
+        // FBM (octaves)
+        // -------------------------
+        float fbm(vec2 p) {
+            float value = 0.0;
+            float amp = amplitude;
+            float freq = 1.0;
+
+            for(int i = 0; i < 8; i++) {
+                if(i >= octaves) break;
+
+                value += perlin(p * freq + offset) * amp;
+
+                amp *= 0.5;
+                freq *= 2.0;
+            }
+
+            return value;
+        }
+
+        void main() {
+            vec2 uv = vUv;
+
+            float v = fbm(uv * frequency);
+
+            // match CPU: (val + 1) * 0.5
+            v = v * 0.5 + 0.5;
+
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader(
+            "perlinGPU",
+            frag,
+            0,
+            {
+                frequency: (this.properties.frequency * 0.5),
+                octaves: { type: "int", value: Math.floor(this.properties.octaves) },
+                amplitude: this.properties.amplitude,
+                offset: this.properties.offset,
+                seed: this.properties.seed
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
-LiteGraph.registerNodeType("Generator/Perlin",PerlinNode);
+LiteGraph.registerNodeType("Generator/Perlin", PerlinNode);
 
-class SimplexNode extends NoiseNode {
+class SimplexNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("noise","array");
-        this.properties = { frequency: 5, octaves: 1, amplitude: 1, offset: 0 };
+        this.properties = { frequency: 5, octaves: 1, amplitude: 1, offset: 0, seed: 1 };
         this.addWidget("slider","Frequency",this.properties.frequency,{min:0,max:20,property:"frequency"});
-        this.addWidget("slider","Octaves",this.properties.octaves,{min:0,max:5,step:1,precision:0,property:"octaves"});
+        this.addWidget("slider","Octaves",this.properties.octaves,{min:1,max:5,step:1,precision:0,property:"octaves"});
         this.addWidget("slider","Amplitude",this.properties.amplitude,{min:0,max:5,property:"amplitude"});
         this.addWidget("slider","Offset",this.properties.offset,{min:0,max:5,property:"offset"});
-        this.simplex = new SimplexNoise();
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+
         this.title="Simplex";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
     onExecute() {
-        const freq = this.properties.frequency;
-        const octaves = this.properties.octaves;
-        const offset = this.properties.offset;
-        let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
+        const frag = `#version 300 es
+        precision highp float;
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                let nx=x/WIDTH;
-                let ny=y/HEIGHT;
-                let val=0, amp=this.properties.amplitude, freqMult=1;
-                for(let o=0;o<octaves;o++){
-                    val += this.simplex.noise2D(nx*freq*freqMult + offset, ny*freq*freqMult + offset)*amp;
-                    amp*=0.5;
-                    freqMult*=2;
-                }
-                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
-            }
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform float frequency;
+        uniform int octaves;
+        uniform float amplitude;
+        uniform float offset;
+        uniform float seed;
+
+        float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031 + seed * 0.13);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
         }
-        this.setOutputData(0,noiseArray);
-        this.drawPreview(noiseArray);
+
+        vec2 grad(vec2 p) {
+            float h = hash(p) * 6.2831853;
+            return vec2(cos(h), sin(h));
+        }
+
+        // -------------------------
+        // 2D Simplex
+        // -------------------------
+        float simplex(vec2 v) {
+            const float F2 = 0.36602540378; // (sqrt(3)-1)/2
+            const float G2 = 0.2113248654;  // (3-sqrt(3))/6
+
+            // Skew
+            float s = (v.x + v.y) * F2;
+            vec2 i = floor(v + s);
+
+            float t = (i.x + i.y) * G2;
+            vec2 X0 = i - t;
+            vec2 x0 = v - X0;
+
+            // Determine simplex corner
+            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+
+            vec2 x1 = x0 - i1 + G2;
+            vec2 x2 = x0 - 1.0 + 2.0 * G2;
+
+            // Gradients
+            vec2 g0 = grad(i);
+            vec2 g1 = grad(i + i1);
+            vec2 g2 = grad(i + 1.0);
+
+            // Contributions
+            float n0, n1, n2;
+
+            float t0 = 0.5 - dot(x0, x0);
+            n0 = (t0 < 0.0) ? 0.0 : pow(t0, 4.0) * dot(g0, x0);
+
+            float t1 = 0.5 - dot(x1, x1);
+            n1 = (t1 < 0.0) ? 0.0 : pow(t1, 4.0) * dot(g1, x1);
+
+            float t2 = 0.5 - dot(x2, x2);
+            n2 = (t2 < 0.0) ? 0.0 : pow(t2, 4.0) * dot(g2, x2);
+
+            return 70.0 * (n0 + n1 + n2);
+        }
+
+        // -------------------------
+        // FBM
+        // -------------------------
+        float fbm(vec2 p) {
+            float value = 0.0;
+            float amp = amplitude;
+            float freq = 1.0;
+
+            for(int i = 0; i < 8; i++) {
+                if(i >= octaves) break;
+
+                value += simplex(p * freq + vec2(offset)) * amp;
+
+                amp *= 0.5;
+                freq *= 2.0;
+            }
+
+            return value;
+        }
+
+        void main() {
+            vec2 uv = vUv;
+
+            float v = fbm(uv * frequency);
+
+            v = v * 0.5 + 0.5;
+
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader(
+            "simplexGPU",
+            frag,
+            0,
+            {
+                frequency: this.properties.frequency * 0.5,
+                octaves: { type: "int", value: this.properties.octaves },
+                amplitude: this.properties.amplitude,
+                offset: this.properties.offset,
+                seed: this.properties.seed
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Generator/Simplex",SimplexNode);
 
-class DirectionalNoiseNode extends NoiseNode {
+class DirectionalNoiseNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("noise","array");
-        this.properties = { frequency: 5, stretch: 20, amplitude: 1, offset: 0, angle: 0 };
-        this.addWidget("slider","Frequency",this.properties.frequency,{min:0,max:20,property:"frequency"});
+        this.properties = { frequency: 5, stretch: 20, amplitude: 1, angle: 0, seed: 1 };
+        this.addWidget("slider","Frequency",this.properties.frequency,{min:0.1,max:20,property:"frequency"});
         this.addWidget("slider","Stretch",this.properties.stretch,{min:0,max:50,property:"stretch"});
         this.addWidget("slider","Amplitude",this.properties.amplitude,{min:0,max:5,property:"amplitude"});
-        this.addWidget("slider","Offset",this.properties.offset,{min:0,max:5,property:"offset"});
         this.addWidget("slider","Angle",this.properties.angle,{min:0,max: 360,property:"angle"});
-        this.simplex = new SimplexNoise();
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+
         this.title="DirectionalNoise";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
     onExecute() {
-        const freq = this.properties.frequency;
-        const offset = this.properties.offset;
-        const angle = this.properties.angle / 360 * Math.PI * 2;
-        const stretch = this.properties.stretch;
-        const amp = this.properties.amplitude;
-        let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
+        const frag = `#version 300 es
+        precision highp float;
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                let nx=x/WIDTH;
-                let ny=y/HEIGHT;
-                const val = directionalNoise((x, y) => { return this.simplex.noise2D(x*freq + offset, y*freq + offset)*amp }, nx, ny, angle, stretch);
-                noiseArray[y*WIDTH+x] = (val + 1) * 0.5;
-            }
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform float frequency;
+        uniform float stretch;
+        uniform float amplitude;
+        uniform float angle;
+        uniform float seed;
+
+        float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031 + seed * 0.13);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
         }
 
-        this.setOutputData(0,noiseArray);
-        this.drawPreview(noiseArray);
+        vec2 grad(vec2 p) {
+            float h = hash(p) * 6.2831853;
+            return vec2(cos(h), sin(h));
+        }
+
+        float simplex(vec2 v) {
+            const float F2 = 0.36602540378;
+            const float G2 = 0.2113248654;
+            float s = (v.x + v.y) * F2;
+            vec2 i = floor(v + s);
+            float t = (i.x + i.y) * G2;
+            vec2 X0 = i - t;
+            vec2 x0 = v - X0;
+            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+            vec2 x1 = x0 - i1 + G2;
+            vec2 x2 = x0 - 1.0 + 2.0 * G2;
+            vec2 g0 = grad(i);
+            vec2 g1 = grad(i + i1);
+            vec2 g2 = grad(i + 1.0);
+            float t0 = 0.5 - dot(x0, x0);
+            float t1 = 0.5 - dot(x1, x1);
+            float t2 = 0.5 - dot(x2, x2);
+            float n0 = (t0<0.0)?0.0:pow(t0,4.0)*dot(g0,x0);
+            float n1 = (t1<0.0)?0.0:pow(t1,4.0)*dot(g1,x1);
+            float n2 = (t2<0.0)?0.0:pow(t2,4.0)*dot(g2,x2);
+            return 70.0 * (n0+n1+n2);
+        }
+
+        float directionalNoise(vec2 uv) {
+            // rotate
+            float xr = uv.x * cos(angle) + uv.y * sin(angle);
+            float yr = -uv.x * sin(angle) + uv.y * cos(angle);
+
+            // stretch along rotated X axis
+            xr *= stretch;
+
+            return simplex(vec2(xr, yr) * frequency);
+        }
+
+        void main() {
+            vec2 uv = vUv;
+            float v = directionalNoise(uv) * amplitude;
+            v = v * 0.5 + 0.5; // normalize
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader(
+            "directionalNoiseGPU",
+            frag,
+            0,
+            {
+                frequency: this.properties.frequency,
+                stretch: this.properties.stretch,
+                amplitude: this.properties.amplitude,
+                angle: this.properties.angle / 360.0 * Math.PI * 2,
+                seed: this.properties.seed
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Generator/DirectionalNoise",DirectionalNoiseNode);
 
-class FormulaXYNode extends NoiseNode {
-    constructor(){
+class FormulaXYNode extends GPUNodeBase {
+    constructor() {
         super();
-        this.properties = { formula: "x*y" }; // Math.sqrt(Math.pow(x - 0.5, 2) + Math.pow(y - 0.5, 2)) - 0.3 <- circle
+        this.properties = { formula: "x*y" };
         this.addWidget("text", "Formula", this.properties.formula, { property: "formula" });
         this.addOutput("out","array");
-        this.title = "FormulaXYNode";
+        this.title = "FormulaXY";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
-    onExecute(){
-        let noiseArray = new Array(WIDTH*HEIGHT).fill(0);
 
-        try
-        {
-            const formula = this.properties.formula;
-            const f = compile(formula, ["x", "y"]);
-
-            for(let ypos=0;ypos<HEIGHT;ypos++){
-                for(let xpos=0;xpos<WIDTH;xpos++){
-                    let x = xpos/WIDTH;
-                    let y = ypos/HEIGHT;
-                    const val = f(x, y)
-                    noiseArray[ypos*WIDTH+xpos] = val;
-                }
-            }
-        }
-        catch(e)
-        {
-            // TODO: Display error!
-            noiseArray = new Array(WIDTH*HEIGHT).fill(0);
-            this.add
-        }
-        
-        this.setOutputData(0,noiseArray);
-        this.drawPreview(noiseArray);
+    onExecute() {
+        const formula = this.properties.formula;
+        this.runShader("formulaXY_" + formula, `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            void main(){
+                float x=vUv.x;
+                float y=vUv.y;
+                float val=${formula};
+                fragColor=vec4(val,0.0,0.0,1.0);
+            }`
+        );
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
-LiteGraph.registerNodeType(`Generator/FormulaXY`, FormulaXYNode);
+LiteGraph.registerNodeType("Generator/FormulaXY", FormulaXYNode);
 
-class CheckerboardNode extends NoiseNode {
+class CheckerboardNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
@@ -163,23 +395,31 @@ class CheckerboardNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH * HEIGHT);
-        const s = Math.max(1, Math.floor(this.properties.size));
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float size;
+        in vec2 vUv;
+        out vec4 fragColor;
+        void main() {
+            vec2 uv = vUv * vec2(${WIDTH}.0, ${HEIGHT}.0);
+            float val = mod(floor(uv.x / size) + floor(uv.y / size), 2.0);
+            fragColor = vec4(val, 0.0, 0.0, 1.0);
+        }`;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                const val = ((Math.floor(x / s) + Math.floor(y / s)) % 2);
-                out[y * WIDTH + x] = val;
-            }
-        }
+        this.runShader(
+            `checkerboard`,
+            fs,
+            0,
+            { size: this.properties.size },
+        );
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Generator/Checkerboard", CheckerboardNode);
 
-class HexGridNode extends NoiseNode {
+class HexGridNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
@@ -192,46 +432,43 @@ class HexGridNode extends NoiseNode {
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
-    hexDist(x, y) {
-        x = Math.abs(x);
-        y = Math.abs(y);
-        return Math.max(x * 0.8660254 + y * 0.5, y);
-    }
-
     onExecute() {
-        const out = new Array(WIDTH * HEIGHT);
-        const s = this.properties.scale;
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float scale;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-
-                // Normalize coords
-                let px = x / s;
-                let py = y / s;
-
-                // Offset grid
-                px -= Math.floor(py) * 0.5;
-
-                const gx = Math.floor(px);
-                const gy = Math.floor(py);
-
-                const fx = px - gx - 0.5;
-                const fy = py - gy - 0.5;
-
-                const d = this.hexDist(fx, fy);
-
-                out[y * WIDTH + x] = d < 0.5 ? 1 : 0;
-            }
+        float hexDist(float x, float y){
+            x = abs(x);
+            y = abs(y);
+            return max(x * 0.8660254 + y * 0.5, y);
         }
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        void main() {
+            vec2 uv = vUv * vec2(${WIDTH}.0, ${HEIGHT}.0) / scale;
+            uv.x -= floor(uv.y) * 0.5;
+            vec2 g = floor(uv);
+            vec2 f = uv - g - 0.5;
+            float val = hexDist(f.x, f.y) < 0.5 ? 1.0 : 0.0;
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
+
+        this.runShader(
+            `hexgrid`,
+            fs,
+            0,
+            { scale: this.properties.scale },
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Hex Grid", HexGridNode);
 
-class TruchetNode extends NoiseNode {
+class TruchetNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
@@ -246,57 +483,64 @@ class TruchetNode extends NoiseNode {
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
-    hash(x, y, seed) {
-        let h = x * 374761393 + y * 668265263 + seed * 982451653;
-        h = (h ^ (h >> 13)) * 1274126177;
-        return (h ^ (h >> 16)) >>> 0;
-    }
-
     onExecute() {
-        const out = new Array(WIDTH * HEIGHT);
-        const s = this.properties.scale;
-        const seed = this.properties.seed;
-        const thickness = this.properties.thickness;
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float scale;
+        uniform float thickness;
+        uniform float seed;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-
-                const tx = Math.floor(x / s);
-                const ty = Math.floor(y / s);
-
-                // Stable random orientation per tile
-                const h = this.hash(tx, ty, seed);
-                const flip = (h & 1) === 0;
-
-                const lx = (x % s) / s;
-                const ly = (y % s) / s;
-
-                let d;
-
-                if (flip) {
-                    // bottom-left - top-right
-                    const d1 = Math.hypot(lx, ly);
-                    const d2 = Math.hypot(lx - 1, ly - 1);
-                    d = Math.min(d1, d2);
-                } else {
-                    // top-left - bottom-right
-                    const d1 = Math.hypot(lx - 1, ly);
-                    const d2 = Math.hypot(lx, ly - 1);
-                    d = Math.min(d1, d2);
-                }
-
-                out[y * WIDTH + x] = Math.abs(d - 0.5) < thickness ? 1 : 0;
-            }
+        uint hash(uint x, uint y, uint s){
+            uint h = x * 374761393u + y * 668265263u + s * 982451653u;
+            h = (h ^ (h >> 13u)) * 1274126177u;
+            return h ^ (h >> 16u);
         }
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        void main() {
+            vec2 uv = vUv * vec2(${WIDTH}.0, ${HEIGHT}.0);
+            float tx = floor(uv.x / scale);
+            float ty = floor(uv.y / scale);
+            uint h = hash(uint(tx), uint(ty), uint(seed));
+            bool flip = (h & 1u) == 0u;
+
+            vec2 local = vec2(mod(uv.x, scale), mod(uv.y, scale)) / scale;
+
+            float d;
+            if(flip){
+                float d1 = length(local);
+                float d2 = length(local - vec2(1.0,1.0));
+                d = min(d1,d2);
+            } else {
+                float d1 = length(local - vec2(1.0,0.0));
+                float d2 = length(local - vec2(0.0,1.0));
+                d = min(d1,d2);
+            }
+
+            float val = abs(d - 0.5) < thickness ? 1.0 : 0.0;
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
+
+        this.runShader(
+            `truchet`,
+            fs,
+            0,
+            {
+                scale: this.properties.scale,
+                thickness: this.properties.thickness,
+                seed: this.properties.seed
+            },
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Truchet Tiles", TruchetNode);
 
-class StripesNode extends NoiseNode {
+class StripesNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -317,50 +561,54 @@ class StripesNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float frequency;
+        uniform float width;
+        uniform float softness;
+        uniform bool vertical;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        const freq = this.properties.frequency;
-        const width = this.properties.width;
-        const soft = this.properties.softness;
-        const vertical = this.properties.vertical;
-
-        const smoothstep = (a,b,x)=>{
-            const t = Math.max(0,Math.min(1,(x-a)/(b-a)));
-            return t*t*(3-2*t);
-        };
-
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-
-                let coord = vertical ? x/WIDTH : y/HEIGHT;
-                let t = (coord * freq) % 1;
-
-                let val;
-
-                if(soft > 0){
-                    // fade in at start
-                    const inEdge = smoothstep(0, soft, t);
-
-                    // fade out at end
-                    const outEdge = 1 - smoothstep(width - soft, width, t);
-
-                    val = inEdge * outEdge;
-                } else {
-                    val = t < width ? 1 : 0;
-                }
-
-                out[y*WIDTH+x] = val;
-            }
+        float smoothstepCustom(float a, float b, float x){
+            float t = clamp((x-a)/(b-a),0.0,1.0);
+            return t*t*(3.0-2.0*t);
         }
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        void main(){
+            float coord = vertical ? vUv.x : vUv.y;
+            float t = mod(coord*frequency, 1.0);
+            float val;
+            if(softness > 0.0){
+                float inEdge = smoothstepCustom(0.0, softness, t);
+                float outEdge = 1.0 - smoothstepCustom(width - softness, width, t);
+                val = inEdge*outEdge;
+            } else {
+                val = t < width ? 1.0 : 0.0;
+            }
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
+
+        this.runShader(
+            `stripes`,
+            fs,
+            0,
+            {
+                frequency: this.properties.frequency,
+                width: this.properties.width,
+                softness: this.properties.softness,
+                vertical: this.properties.vertical ? 1 : 0
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Stripes", StripesNode);
 
-class GradientNode extends NoiseNode {
+class GradientNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -377,39 +625,42 @@ class GradientNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform int typeIdx;
+        uniform bool invert;
+        in vec2 vUv;
+        out vec4 fragColor;
+        void main(){
+            float val;
+            if(typeIdx==0) val = vUv.x;
+            else if(typeIdx==1) val = vUv.y;
+            else {
+                vec2 c = vUv - vec2(0.5);
+                val = length(c)/0.5;
+            }
+            if(invert) val = 1.0 - val;
+            val = clamp(val,0.0,1.0);
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
+
         const typeIdx = ["Horizontal","Vertical","Radial"].indexOf(this.properties.type);
 
-        const cx = WIDTH/2;
-        const cy = HEIGHT/2;
-        const maxR = Math.min(cx,cy);
-        const invert = this.properties.invert;
+        this.runShader(
+            `gradient`,
+            fs,
+            0,
+            { typeIdx: { type: "int", typeIdx }, invert: this.properties.invert ? 1 : 0 },
+        );
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                let v;
-
-                if(typeIdx === 0) v = x/WIDTH;
-                else if(typeIdx === 1) v = y/HEIGHT;
-                else {
-                    const dx = x-cx, dy = y-cy;
-                    v = Math.sqrt(dx*dx+dy*dy)/maxR;
-                }
-                if (invert)
-                    v = 1-v;
-
-                out[y*WIDTH+x] = Math.max(0,Math.min(1, v));
-            }
-        }
-
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Gradient", GradientNode);
 
-class WhiteNoiseNode extends NoiseNode {
+class WhiteNoiseNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -420,59 +671,133 @@ class WhiteNoiseNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
-        const rng = new RNG(this.properties.seed);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float seed;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for(let i=0;i<out.length;i++){
-            out[i] = rng.nextFloat();
+        float rand(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233)) + seed)*43758.5453);
         }
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        void main(){
+            float val = rand(vUv * vec2(${WIDTH}.0,${HEIGHT}.0));
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
+
+        this.runShader(
+            `whitenoise`,
+            fs,
+            0,
+            { seed: this.properties.seed },
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/WhiteNoise", WhiteNoiseNode);
 
-class VoronoiNode extends NoiseNode {
+class VoronoiNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
-        this.properties = { points: 10, seed: 1 };
-        this.addWidget("slider", "Points", this.properties.points, { min: 1, max: 100, step: 1, precision: 0, property: "points" });
+        this.properties = { scale: 40, seed: 1, type: "Distance" };
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 1, max: 100, step: 1, precision: 0, property: "scale" });
         this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, precision: 0, property: "seed" });
+        this.addWidget("combo","Type",this.properties.type,{
+            values: ["Distance","FlatCell"],
+            property:"type"
+        });
         this.title = "Voronoi";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
+    rand2d(x, y, seed) {
+        return `fract(sin(dot(vec2(${x},${y}), vec2(12.9898,78.233)) + ${seed}.0) * 43758.5453)`;
+    }
+
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
-        const numPoints = Math.max(1, Math.floor(this.properties.points));
-        const rng = new RNG(this.properties.seed);
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        const points = [];
-        for (let i=0; i<numPoints; i++){
-            points.push([rng.nextFloatRange(0, WIDTH), rng.nextFloatRange(0, HEIGHT)]);
+        uniform float seed;
+        uniform float scale;
+        uniform int typeIdx;
+
+        float h1(vec2 p)
+        {
+            p += seed;
+            return fract(cos(p.x*89.42 - p.y*75.7) * 343.42);
         }
 
-        for (let y=0; y<HEIGHT; y++){
-            for (let x=0; x<WIDTH; x++){
-                let closest = Infinity;
-                for (let p of points){
-                    const dx = x - p[0], dy = y - p[1];
-                    closest = Math.min(closest, Math.sqrt(dx*dx + dy*dy));
+        vec2 h2(vec2 p)
+        {
+            p += seed;
+            return fract(cos(p * mat2(89.4,-75.7,-81.9,79.6)) * 343.42); 
+        }
+
+        float voronoi(vec2 n, float s)
+        {
+            float id = 0.0;
+            float dis = 1e20;
+
+            vec2 cell = floor(n / s);
+            vec2 f = fract(n / s);
+
+            for(int x = -1; x <= 1; x++)
+            for(int y = -1; y <= 1; y++)
+            {
+                vec2 p = cell + vec2(float(x), float(y));
+                vec2 offset = h2(p);
+
+                float d = length(offset + vec2(float(x), float(y)) - f);
+
+                if (d < dis)
+                {
+                    dis = d;
+                    id = h1(p);
                 }
-                out[y*WIDTH + x] = closest / Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
             }
+
+            if (typeIdx == 0)
+                return dis;
+            else
+                return id;
         }
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        void main()
+        {
+            vec2 uv = vUv.xy;
+
+            // scale behaves like "points" / density
+            float s = scale;
+
+            float v = voronoi(uv, s);
+
+            // grayscale output (node-friendly)
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        const typeIdx = ["Distance","FlatCell"].indexOf(this.properties.type);
+
+        this.runShader(
+            "voronoiGPU",
+            frag,
+            0,
+            { seed: this.properties.seed, scale: this.properties.scale * 0.005, typeIdx: { type: "int", value: typeIdx }  }
+        );
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Generator/Voronoi", VoronoiNode);
 
-class CellNoiseNode extends NoiseNode {
+class CellNoiseNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -487,49 +812,54 @@ class CellNoiseNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
-        const rng = new RNG(this.properties.seed);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform int numPoints;
+        uniform float thickness;
+        uniform float seed;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        const points = [];
-        const n = Math.floor(this.properties.points);
-
-        for(let i=0;i<n;i++){
-            points.push([rng.nextFloat()*WIDTH, rng.nextFloat()*HEIGHT]);
+        float rand(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233)) + seed)*43758.5453);
         }
 
-        const thickness = this.properties.thickness * Math.min(WIDTH,HEIGHT) * 0.01;
-
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-
-                let d1 = Infinity, d2 = Infinity;
-
-                for(let p of points){
-                    const dx = x-p[0], dy = y-p[1];
-                    const d = dx*dx + dy*dy;
-
-                    if(d < d1){
-                        d2 = d1;
-                        d1 = d;
-                    } else if(d < d2){
-                        d2 = d;
-                    }
+        void main(){
+            vec2 uv = vUv * vec2(${WIDTH}.0,${HEIGHT}.0);
+            float t = thickness*min(${WIDTH}.0,${HEIGHT}.0)*0.01;
+            float d1 = 1.0e20;
+            float d2 = 1.0e20;
+            for(int i=0;i<100;i++){
+                if(i>=numPoints) break;
+                vec2 p = vec2(rand(vec2(float(i),0.0))*${WIDTH}.0, rand(vec2(float(i),1.0))*${HEIGHT}.0);
+                float dist = distance(uv,p);
+                if(dist < d1){
+                    d2 = d1;
+                    d1 = dist;
+                } else if(dist < d2){
+                    d2 = dist;
                 }
-
-                const edge = Math.sqrt(d2) - Math.sqrt(d1);
-
-                out[y*WIDTH+x] = edge < thickness ? 1 : 0;
             }
-        }
+            float edge = sqrt(d2)-sqrt(d1);
+            float val = edge < t ? 1.0 : 0.0;
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        this.runShader(
+            `cellnoise`,
+            fs,
+            0,
+            { numPoints: { type: "int", value: Math.floor(this.properties.points) }, thickness: this.properties.thickness * 0.05, seed: this.properties.seed },
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/CellNoise", CellNoiseNode);
 
-class CircleNode extends NoiseNode {
+class CircleNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -542,27 +872,37 @@ class CircleNode extends NoiseNode {
     }
 
     onExecute() {
-        const out = new Array(WIDTH*HEIGHT);
-        const cx = this.properties.x*WIDTH;
-        const cy = this.properties.y*HEIGHT;
-        const r = this.properties.radius * Math.min(WIDTH, HEIGHT);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float radius;
+        uniform float cx;
+        uniform float cy;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                const dx = x - cx;
-                const dy = y - cy;
-                out[y*WIDTH + x] = (dx*dx + dy*dy) <= r*r ? 1 : 0;
-            }
-        }
+        void main(){
+            vec2 uv = vUv * vec2(${WIDTH}.0,${HEIGHT}.0);
+            float dx = uv.x - cx*${WIDTH}.0;
+            float dy = uv.y - cy*${HEIGHT}.0;
+            float val = (dx*dx + dy*dy <= radius*radius*min(${WIDTH}.0,${HEIGHT}.0)*min(${WIDTH}.0,${HEIGHT}.0)) ? 1.0 : 0.0;
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        this.runShader(
+            `circle`,
+            fs,
+            0,
+            { radius: this.properties.radius, cx: this.properties.x, cy: this.properties.y },
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Circle",CircleNode);
 
-class DotsNode extends NoiseNode {
+class DotsNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out","array");
@@ -581,50 +921,46 @@ class DotsNode extends NoiseNode {
     }
 
     onExecute(){
-        const out = new Array(WIDTH*HEIGHT);
+        const fs = `#version 300 es
+        precision highp float;
+        uniform float spacing;
+        uniform float radius;
+        uniform float softness;
+        uniform bool stagger;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        const spacing = this.properties.spacing;
-        const radius = this.properties.radius;
-        const soft = this.properties.softness;
-        const stagger = this.properties.stagger;
-
-        const smoothstep = (a,b,x)=>{
-            const t = Math.max(0,Math.min(1,(x-a)/(b-a)));
-            return t*t*(3-2*t);
+        float smoothstepCustom(float a,float b,float x){
+            float t = clamp((x-a)/(b-a),0.0,1.0);
+            return t*t*(3.0-2.0*t);
         }
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                let nx = x/WIDTH;
-                let ny = y/HEIGHT;
+        void main(){
+            vec2 uv = vUv;
+            float cx = floor(uv.x/spacing);
+            float cy = floor(uv.y/spacing);
+            float offsetX = stagger && mod(cy,2.0)>0.5 ? spacing*0.5 : 0.0;
+            vec2 local = uv - vec2(cx*spacing + offsetX, cy*spacing);
+            float dist = length(local);
+            float val = softness>0.0 ? 1.0-smoothstepCustom(radius-softness,radius+softness,dist) : (dist<radius ? 1.0:0.0);
+            fragColor = vec4(val,0.0,0.0,1.0);
+        }`;
 
-                // calculate cell coordinates
-                let cx = Math.floor(nx/spacing);
-                let cy = Math.floor(ny/spacing);
+        this.runShader(
+            `dots`,
+            fs,
+            0,
+            { spacing:this.properties.spacing, radius:this.properties.radius, softness:this.properties.softness, stagger:this.properties.stagger ? 1 : 0 },
+        );
 
-                // apply stagger
-                let offsetX = (stagger && (cy%2)) ? spacing*0.5 : 0;
-
-                let dx = nx - (cx*spacing + offsetX);
-                let dy = ny - (cy*spacing);
-                let dist = Math.sqrt(dx*dx + dy*dy);
-
-                if(soft>0){
-                    out[y*WIDTH+x] = 1 - smoothstep(radius-soft, radius+soft, dist);
-                } else {
-                    out[y*WIDTH+x] = dist < radius ? 1 : 0;
-                }
-            }
-        }
-
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Generator/Dots",DotsNode);
 
-class RidgedNoiseNode extends NoiseNode {
+class RidgedNoiseNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
@@ -632,51 +968,122 @@ class RidgedNoiseNode extends NoiseNode {
         this.properties = { scale: 50, octaves: 4, seed: 1 };
 
         this.addWidget("slider", "Scale", this.properties.scale, { min: 1, max: 200, property: "scale" });
-        this.addWidget("slider", "Octaves", this.properties.octaves, { min: 1, max: 8, step: 1, property: "octaves" });
+        this.addWidget("slider", "Octaves", this.properties.octaves, { min: 1, max: 8, step: 1, precision: 0, property: "octaves" });
         this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
 
         this.title = "Ridged Noise";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
-    noise(x, y) {
-        return Math.abs(this.simplex.noise2D(x, y));
-    }
-
     onExecute() {
-        this.simplex = new SimplexNoise(this.properties.seed);
+        const frag = `#version 300 es
+        precision highp float;
 
-        const out = new Array(WIDTH * HEIGHT);
-        const scale = this.properties.scale;
-        const octaves = this.properties.octaves;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
+        uniform float scale;
+        uniform int octaves;
+        uniform float seed;
 
-                let nx = x / scale;
-                let ny = y / scale;
-
-                let value = 0;
-                let amp = 1;
-                let freq = 1;
-
-                for (let o = 0; o < octaves; o++) {
-                    let n = this.noise(nx * freq, ny * freq);
-                    n = 1 - n; // ridged
-                    n *= n;
-
-                    value += n * amp;
-
-                    freq *= 2;
-                    amp *= 0.5;
-                }
-
-                out[y * WIDTH + x] = value;
-            }
+        float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031 + seed * 0.13);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
         }
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        vec2 grad(vec2 p) {
+            float h = hash(p) * 6.2831853;
+            return vec2(cos(h), sin(h));
+        }
+
+        // -------------------------
+        // Simplex 2D
+        // -------------------------
+        float simplex(vec2 v) {
+            const float F2 = 0.36602540378;
+            const float G2 = 0.2113248654;
+
+            float s = (v.x + v.y) * F2;
+            vec2 i = floor(v + s);
+
+            float t = (i.x + i.y) * G2;
+            vec2 X0 = i - t;
+            vec2 x0 = v - X0;
+
+            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+
+            vec2 x1 = x0 - i1 + G2;
+            vec2 x2 = x0 - 1.0 + 2.0 * G2;
+
+            vec2 g0 = grad(i);
+            vec2 g1 = grad(i + i1);
+            vec2 g2 = grad(i + 1.0);
+
+            float n0, n1, n2;
+
+            float t0 = 0.5 - dot(x0, x0);
+            n0 = (t0 < 0.0) ? 0.0 : pow(t0, 4.0) * dot(g0, x0);
+
+            float t1 = 0.5 - dot(x1, x1);
+            n1 = (t1 < 0.0) ? 0.0 : pow(t1, 4.0) * dot(g1, x1);
+
+            float t2 = 0.5 - dot(x2, x2);
+            n2 = (t2 < 0.0) ? 0.0 : pow(t2, 4.0) * dot(g2, x2);
+
+            return 70.0 * (n0 + n1 + n2);
+        }
+
+        // -------------------------
+        // Ridged FBM
+        // -------------------------
+        float ridged(vec2 p) {
+            float value = 0.0;
+            float amp = 1.0;
+            float freq = 1.0;
+
+            for(int i = 0; i < 8; i++) {
+                if(i >= octaves) break;
+
+                float n = simplex(p * freq);
+
+                n = abs(n);   // ridge base
+                n = 1.0 - n; // invert
+                n *= n;      // sharpen ridges
+
+                value += n * amp;
+
+                freq *= 2.0;
+                amp *= 0.5;
+            }
+
+            return value;
+        }
+
+        void main() {
+            vec2 uv = vUv;
+
+            // match CPU: x/scale
+            vec2 p = uv * (1.0 / scale);
+
+            float v = ridged(p);
+
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader(
+            "ridgedNoiseGPU",
+            frag,
+            0,
+            {
+                scale: this.properties.scale * 0.01,
+                octaves: { type:"int", value: this.properties.octaves },
+                seed: this.properties.seed
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 

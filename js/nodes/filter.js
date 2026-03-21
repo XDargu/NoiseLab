@@ -1,5 +1,5 @@
 // Other nodes
-class BlurNode extends NoiseNode {
+class BlurNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -11,62 +11,92 @@ class BlurNode extends NoiseNode {
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
-    boxBlur(input, amount) {
-        const temp = new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT).fill(0);
-        const kernelSize = amount*2+1;
+    runPass(direction, radius) {
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform vec2 direction;
+        uniform float radius;
 
-        // Horizontal pass
-        for(let y=0;y<HEIGHT;y++){
-            let sum=0;
-            for(let kx=-amount;kx<=amount;kx++){
-                let x = Math.max(0, Math.min(WIDTH-1, kx));
-                sum += input[y*WIDTH + x];
-            }
-            for(let x=0;x<WIDTH;x++){
-                temp[y*WIDTH + x] = sum / kernelSize;
-                let remove = input[y*WIDTH + Math.max(0, x-amount)];
-                let add = input[y*WIDTH + Math.min(WIDTH-1, x+amount+1)];
-                sum = sum - remove + add;
-            }
-        }
+        void main() {
+            vec2 texel = 1.0 / vec2(textureSize(tex0,0));
+            float sum = 0.0;
+            float count = 0.0;
 
-        // Vertical pass
-        for(let x=0;x<WIDTH;x++){
-            let sum=0;
-            for(let ky=-amount;ky<=amount;ky++){
-                let y = Math.max(0, Math.min(HEIGHT-1, ky));
-                sum += temp[y*WIDTH + x];
+            for(int i=-20;i<=20;i++){
+                float fi = float(i);
+                if(abs(fi)>radius) continue;
+                sum += texture(tex0, vUv + direction*texel*fi).r;
+                count += 1.0;
             }
-            for(let y=0;y<HEIGHT;y++){
-                out[y*WIDTH + x] = sum / kernelSize;
-                let remove = temp[Math.max(0, y-amount)*WIDTH + x];
-                let add = temp[Math.min(HEIGHT-1, y+amount+1)*WIDTH + x];
-                sum = sum - remove + add;
-            }
-        }
 
-        return out;
+            fragColor = vec4(vec3(sum/count),1.0);
+        }`;
+
+        this.runShader(
+            "blur_pass",
+            frag,
+            1,
+            { direction, radius },
+            this.pingWrite(),
+            [this.pingRead()]
+        );
+
+        this.swapPing();
     }
 
     onExecute() {
-        let input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
+        this.updateInputTexture(0, this.getInputData(0));
+
         const amount = Math.max(1, Math.floor(this.properties.amount));
         const passes = Math.max(1, Math.floor(this.properties.passes));
 
-        let out = input;
+        // Copy input into ping-pong texture 0
+        this.runShader(
+            "copy_input",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main() { fragColor = texture(tex0, vUv); }`,
+            1,
+            {},
+            this._pingFramebuffers[0],
+            [this._inputTextures[0]]
+        );
+        this._pingCurrent = 0;
+
         for(let i=0;i<passes;i++){
-            out = this.boxBlur(out, amount);
+            this.runPass([1,0], amount); // horizontal
+            this.runPass([0,1], amount); // vertical
         }
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        // Copy final result to main output
+        this.runShader(
+            "copy_to_main",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main(){ fragColor = texture(tex0,vUv); }`,
+            1,
+            {},
+            this.framebuffer,
+            [this.pingRead()]
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Filter/Blur", BlurNode);
 
-class SobelNode extends NoiseNode {
+class SobelNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -76,52 +106,48 @@ class SobelNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const out = new Array(WIDTH * HEIGHT).fill(0);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        // Sobel kernels
-        const kernelX = [
-            [-1, 0, 1],
-            [-2, 0, 2],
-            [-1, 0, 1]
-        ];
-        const kernelY = [
-            [-1, -2, -1],
-            [0, 0, 0],
-            [1, 2, 1]
-        ];
+        const frag = `#version 300 es
+        precision highp float;
 
-        const sample = (x, y) => {
-            x = Math.max(0, Math.min(WIDTH - 1, x));
-            y = Math.max(0, Math.min(HEIGHT - 1, y));
-            return input[y * WIDTH + x];
-        };
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                let gx = 0, gy = 0;
+        uniform sampler2D tex0;
 
-                for (let ky = -1; ky <= 1; ky++) {
-                    for (let kx = -1; kx <= 1; kx++) {
-                        const val = sample(x + kx, y + ky);
-                        gx += val * kernelX[ky + 1][kx + 1];
-                        gy += val * kernelY[ky + 1][kx + 1];
-                    }
-                }
+        void main() {
+            vec2 texel = 1.0 / vec2(textureSize(tex0, 0));
 
-                // edge magnitude
-                out[y * WIDTH + x] = Math.sqrt(gx * gx + gy * gy);
-            }
-        }
+            float tl = texture(tex0, vUv + texel * vec2(-1,-1)).r;
+            float tc = texture(tex0, vUv + texel * vec2( 0,-1)).r;
+            float tr = texture(tex0, vUv + texel * vec2( 1,-1)).r;
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+            float ml = texture(tex0, vUv + texel * vec2(-1, 0)).r;
+            float mr = texture(tex0, vUv + texel * vec2( 1, 0)).r;
+
+            float bl = texture(tex0, vUv + texel * vec2(-1, 1)).r;
+            float bc = texture(tex0, vUv + texel * vec2( 0, 1)).r;
+            float br = texture(tex0, vUv + texel * vec2( 1, 1)).r;
+
+            float gx = -tl -2.0*ml - bl + tr +2.0*mr + br;
+            float gy = -tl -2.0*tc - tr + bl +2.0*bc + br;
+
+            float g = sqrt(gx*gx + gy*gy);
+
+            fragColor = vec4(vec3(g), 1.0);
+        }`;
+
+        this.runShader("sobel", frag, 1);
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Filter/Sobel", SobelNode);
 
-class PosterizeNode extends NoiseNode {
+class PosterizeNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -133,25 +159,37 @@ class PosterizeNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const levels = Math.max(2, Math.floor(this.properties.levels));
-        const out = new Array(WIDTH * HEIGHT);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        for (let i = 0; i < input.length; i++) {
-            // map value 0..1 to discrete steps
-            let v = input[i];
-            let step = Math.floor(v * levels);      // step index
-            out[i] = step / (levels - 1);          // normalize back to 0..1
-        }
+        const frag = `#version 300 es
+        precision highp float;
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform float levels;
+
+        void main() {
+            float v = texture(tex0, vUv).r;
+            float stepVal = floor(v * levels);
+            float val = stepVal / (levels - 1.0);
+
+            fragColor = vec4(vec3(val), 1.0);
+        }`;
+
+        this.runShader("posterize", frag, 1, {
+            levels: this.properties.levels
+        });
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Filter/Posterize", PosterizeNode);
 
-class PixelateNode extends NoiseNode {
+class PixelateNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input","array");
@@ -163,27 +201,41 @@ class PixelateNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-        const size = Math.max(1, Math.floor(this.properties.pixelSize));
+        this.updateInputTexture(0, this.getInputData(0));
 
-        for(let y=0;y<HEIGHT;y++){
-            for(let x=0;x<WIDTH;x++){
-                const px = Math.floor(x/size)*size;
-                const py = Math.floor(y/size)*size;
-                const val = input[py*WIDTH + px];
-                out[y*WIDTH + x] = val;
-            }
-        }
+        const frag = `#version 300 es
+        precision highp float;
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform float pixelSize;
+
+        void main() {
+            vec2 size = vec2(textureSize(tex0, 0));
+            vec2 uv = vUv * size;
+
+            uv = floor(uv / pixelSize) * pixelSize;
+
+            vec2 finalUv = uv / size;
+            float val = texture(tex0, finalUv).r;
+
+            fragColor = vec4(vec3(val), 1.0);
+        }`;
+
+        this.runShader("pixelate", frag, 1, {
+            pixelSize: this.properties.pixelSize
+        });
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Filter/Pixelate",PixelateNode);
 
-class ThresholdNode extends NoiseNode {
+class ThresholdNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input","array");
@@ -196,31 +248,45 @@ class ThresholdNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const t = this.properties.threshold;
-        const s = this.properties.soft;
-        const out = new Array(WIDTH*HEIGHT);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        if(s <= 0){
-            // hard threshold
-            for(let i=0;i<WIDTH*HEIGHT;i++){
-                out[i] = input[i] >= t ? 1 : 0;
-            }
-        } else {
-            // soft threshold using smoothstep
-            const smoothstep = (edge0, edge1, x) => {
-                const t = Math.max(0, Math.min(1, (x - edge0)/(edge1 - edge0)));
-                return t*t*(3-2*t);
-            };
-            const edge0 = t - s;
-            const edge1 = t + s;
-            for(let i=0;i<WIDTH*HEIGHT;i++){
-                out[i] = smoothstep(edge0, edge1, input[i]);
-            }
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform float threshold;
+        uniform float soft;
+
+        float smoothThreshold(float edge0, float edge1, float x) {
+            float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+            return t * t * (3.0 - 2.0 * t);
         }
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        void main() {
+            float v = texture(tex0, vUv).r;
+
+            float outVal;
+            if (soft <= 0.0001) {
+                outVal = v >= threshold ? 1.0 : 0.0;
+            } else {
+                float e0 = threshold - soft;
+                float e1 = threshold + soft;
+                outVal = smoothThreshold(e0, e1, v);
+            }
+
+            fragColor = vec4(vec3(outVal), 1.0);
+        }`;
+
+        this.runShader("threshold", frag, 1, {
+            threshold: this.properties.threshold,
+            soft: this.properties.soft
+        });
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 

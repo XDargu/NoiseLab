@@ -1,13 +1,137 @@
 const exampleEye = {
-  "last_node_id": 22,
-  "last_link_id": 32,
+  "last_node_id": 32,
+  "last_link_id": 44,
   "nodes": [
+    {
+      "id": 1,
+      "type": "Generator/Stripes",
+      "pos": {
+        "0": -85,
+        "1": -137,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 268
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Stripes",
+      "properties": {
+        "frequency": 1,
+        "width": 0.47935830150604253,
+        "softness": 0.20018383368136958,
+        "vertical": false
+      }
+    },
+    {
+      "id": 17,
+      "type": "Generator/Circle",
+      "pos": {
+        "0": 1414.725830078125,
+        "1": 397.7767639160156,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 244
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            27
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Circle",
+      "properties": {
+        "radius": 0.1331111679077152,
+        "x": 0.5020593200067057,
+        "y": 0.5035214973218507
+      }
+    },
+    {
+      "id": 4,
+      "type": "Generator/DirectionalNoise",
+      "pos": {
+        "0": -187,
+        "1": 219,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            20
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "DirectionalNoise",
+      "properties": {
+        "frequency": 5,
+        "stretch": 20,
+        "amplitude": 1,
+        "angle": 0,
+        "seed": 1,
+        "offset": 0
+      }
+    },
     {
       "id": 6,
       "type": "Math/Multiply",
       "pos": {
-        "0": 621,
-        "1": 44,
+        "0": 612,
+        "1": 43,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -50,11 +174,11 @@ const exampleEye = {
       "properties": {}
     },
     {
-      "id": 3,
-      "type": "Transform/Offset",
+      "id": 22,
+      "type": "Filter/Blur",
       "pos": {
-        "0": 185,
-        "1": -134,
+        "0": 1941,
+        "1": 401,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -69,13 +193,13 @@ const exampleEye = {
         "1": 220
       },
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
-          "name": "input",
+          "name": "value",
           "type": "array",
-          "link": 2
+          "link": 31
         }
       ],
       "outputs": [
@@ -83,23 +207,23 @@ const exampleEye = {
           "name": "out",
           "type": "array",
           "links": [
-            21
+            42
           ],
           "slot_index": 0
         }
       ],
-      "title": "Offset",
+      "title": "Blur",
       "properties": {
-        "offsetX": 0,
-        "offsetY": 0.29481170546371493
+        "amount": 2.3033446762235146,
+        "passes": 3.7977660642078463
       }
     },
     {
-      "id": 1,
-      "type": "Generator/Stripes",
+      "id": 20,
+      "type": "Generator/Circle",
       "pos": {
-        "0": -85,
-        "1": -137,
+        "0": 1697,
+        "1": 403,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -111,10 +235,10 @@ const exampleEye = {
       },
       "size": {
         "0": 210,
-        "1": 268
+        "1": 244
       },
       "flags": {},
-      "order": 0,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -122,17 +246,281 @@ const exampleEye = {
           "name": "out",
           "type": "array",
           "links": [
-            2
+            31
           ],
           "slot_index": 0
         }
       ],
-      "title": "Stripes",
+      "title": "Circle",
       "properties": {
-        "frequency": 1,
-        "width": 0.47935830150604253,
-        "softness": 0.20018383368136958,
-        "vertical": false
+        "radius": 0.06765572203749141,
+        "x": 0.2822352273624018,
+        "y": 0.6752947489420573
+      }
+    },
+    {
+      "id": 18,
+      "type": "Math/Subtract",
+      "pos": {
+        "0": 1788,
+        "1": 82,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 44
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            29
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Subtract",
+      "properties": {}
+    },
+    {
+      "id": 32,
+      "type": "Math/Saturate",
+      "pos": {
+        "0": 1573,
+        "1": 84,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 43
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            44
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Saturate",
+      "properties": {}
+    },
+    {
+      "id": 16,
+      "type": "Combine/Mix",
+      "pos": {
+        "0": 1313,
+        "1": 77,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 24
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            43
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Mix / Lerp",
+      "properties": {
+        "t": 0.27350967887030797
+      }
+    },
+    {
+      "id": 7,
+      "type": "Generator/Circle",
+      "pos": {
+        "0": 1085,
+        "1": 377,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 244
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            25
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Circle",
+      "properties": {
+        "radius": 0.43443465993453667,
+        "x": 0.5030617607964409,
+        "y": 0.5030617607964409
+      }
+    },
+    {
+      "id": 19,
+      "type": "Generator/DirectionalNoise",
+      "pos": {
+        "0": -185,
+        "1": 611,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            28
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "DirectionalNoise",
+      "properties": {
+        "frequency": 3.690498513185781,
+        "stretch": 32.70483232658882,
+        "amplitude": 2.318582322862413,
+        "angle": 0,
+        "seed": 1,
+        "offset": 1.5854906795000703
+      }
+    },
+    {
+      "id": 13,
+      "type": "Transform/Cartesian to Polar",
+      "pos": {
+        "0": 762,
+        "1": 333,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            23
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Cartesian to Polar",
+      "properties": {
+        "scale": 0.8115443188137488
       }
     },
     {
@@ -180,11 +568,144 @@ const exampleEye = {
       }
     },
     {
+      "id": 3,
+      "type": "Transform/Offset",
+      "pos": {
+        "0": 185,
+        "1": -134,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            21
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Offset",
+      "properties": {
+        "offsetX": 0,
+        "offsetY": -0.1368718087090378
+      }
+    },
+    {
+      "id": 12,
+      "type": "Generator/Stripes",
+      "pos": {
+        "0": 110,
+        "1": 690,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 268
+      },
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            18
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Stripes",
+      "properties": {
+        "frequency": 1,
+        "width": 0.6952134704589835,
+        "softness": 0.20874301244784646,
+        "vertical": false
+      }
+    },
+    {
+      "id": 14,
+      "type": "Math/Multiply",
+      "pos": {
+        "0": 456,
+        "1": 569,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 28
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            19
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Multiply",
+      "properties": {}
+    },
+    {
       "id": 15,
       "type": "Math/Add",
       "pos": {
-        "0": 1137.3607177734375,
-        "1": 93.25616455078125,
+        "0": 1108,
+        "1": 79,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -227,488 +748,11 @@ const exampleEye = {
       "properties": {}
     },
     {
-      "id": 7,
-      "type": "Generator/Circle",
-      "pos": {
-        "0": 1099,
-        "1": 349,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 244
-      },
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            25
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Circle",
-      "properties": {
-        "radius": 0.4317752974749267,
-        "x": 0.5035214973218507,
-        "y": 0.5035214973218507
-      }
-    },
-    {
-      "id": 17,
-      "type": "Generator/Circle",
-      "pos": {
-        "0": 1414.725830078125,
-        "1": 397.7767639160156,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 244
-      },
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            27
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Circle",
-      "properties": {
-        "radius": 0.1331111679077152,
-        "x": 0.5020593200067057,
-        "y": 0.5035214973218507
-      }
-    },
-    {
-      "id": 13,
-      "type": "Transform/Cartesian to Polar",
-      "pos": {
-        "0": 764,
-        "1": 332,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 196
-      },
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "input",
-          "type": "array",
-          "link": 19
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            23
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Cartesian to Polar",
-      "properties": {
-        "scale": 0.8115443188137488
-      }
-    },
-    {
-      "id": 4,
-      "type": "Generator/DirectionalNoise",
-      "pos": {
-        "0": -187,
-        "1": 219,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 292
-      },
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "noise",
-          "type": "array",
-          "links": [
-            20
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "DirectionalNoise",
-      "properties": {
-        "frequency": 5,
-        "stretch": 20,
-        "amplitude": 1,
-        "offset": 0,
-        "angle": 0
-      }
-    },
-    {
-      "id": 16,
-      "type": "Combine/Mix",
-      "pos": {
-        "0": 1402,
-        "1": 86,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 216
-      },
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "A",
-          "type": "array",
-          "link": 24
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": 25
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            26
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Mix / Lerp",
-      "properties": {
-        "t": 0.12078287678051539
-      }
-    },
-    {
-      "id": 14,
-      "type": "Math/Multiply",
-      "pos": {
-        "0": 482,
-        "1": 558,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 184
-      },
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "A",
-          "type": "array",
-          "link": 28
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": 18
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            19
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Multiply",
-      "properties": {}
-    },
-    {
-      "id": 12,
-      "type": "Generator/Stripes",
-      "pos": {
-        "0": 172,
-        "1": 665,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 268
-      },
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            18
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Stripes",
-      "properties": {
-        "frequency": 1,
-        "width": 0.6952134704589835,
-        "softness": 0.20874301244784646,
-        "vertical": false
-      }
-    },
-    {
-      "id": 19,
-      "type": "Generator/DirectionalNoise",
-      "pos": {
-        "0": -189,
-        "1": 559,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 292
-      },
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "noise",
-          "type": "array",
-          "links": [
-            28
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "DirectionalNoise",
-      "properties": {
-        "frequency": 3.690498513185781,
-        "stretch": 32.70483232658882,
-        "amplitude": 1.762258356267744,
-        "offset": 1.5854906795000703,
-        "angle": 0
-      }
-    },
-    {
-      "id": 18,
-      "type": "Math/Subtract",
-      "pos": {
-        "0": 1669,
-        "1": 99,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 184
-      },
-      "flags": {},
-      "order": 15,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "A",
-          "type": "array",
-          "link": 26
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": 27
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            29
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Subtract",
-      "properties": {}
-    },
-    {
-      "id": 20,
-      "type": "Generator/Circle",
-      "pos": {
-        "0": 1697,
-        "1": 403,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 244
-      },
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            31
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Circle",
-      "properties": {
-        "radius": 0.06765572203749141,
-        "x": 0.2822352273624018,
-        "y": 0.3189661731842572
-      }
-    },
-    {
-      "id": 22,
-      "type": "Filter/Blur",
-      "pos": {
-        "0": 1941,
-        "1": 401,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 220
-      },
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "value",
-          "type": "array",
-          "link": 31
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            32
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Blur",
-      "properties": {
-        "amount": 2.3033446762235146,
-        "passes": 3.7977660642078463
-      }
-    },
-    {
       "id": 21,
       "type": "Math/Add",
       "pos": {
-        "0": 2231,
-        "1": 95,
+        "0": 2233,
+        "1": 82,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -723,7 +767,7 @@ const exampleEye = {
         "1": 184
       },
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -734,18 +778,21 @@ const exampleEye = {
         {
           "name": "B",
           "type": "array",
-          "link": 32
+          "link": 42
         }
       ],
       "outputs": [
         {
           "name": "out",
           "type": "array",
-          "links": null
+          "links": [],
+          "slot_index": 0
         }
       ],
       "title": "Add",
-      "properties": {}
+      "properties": {},
+      "color": "#223",
+      "bgcolor": "#335"
     }
   ],
   "links": [
@@ -830,14 +877,6 @@ const exampleEye = {
       "array"
     ],
     [
-      26,
-      16,
-      0,
-      18,
-      0,
-      "array"
-    ],
-    [
       27,
       17,
       0,
@@ -870,11 +909,27 @@ const exampleEye = {
       "array"
     ],
     [
-      32,
+      42,
       22,
       0,
       21,
       1,
+      "array"
+    ],
+    [
+      43,
+      16,
+      0,
+      32,
+      0,
+      "array"
+    ],
+    [
+      44,
+      32,
+      0,
+      18,
+      0,
       "array"
     ]
   ],
@@ -923,9 +978,9 @@ const exampleVorRocks = {
       ],
       "title": "Cell Noise",
       "properties": {
-        "points": 25.21152108776527,
+        "points": 22.5,
         "thickness": 1.9463230190676881,
-        "seed": 875.9550000142981
+        "seed": 786
       }
     },
     {
@@ -1254,45 +1309,9 @@ const exampleVorRocks = {
 };
 
 const exampleIsland = {
-  "last_node_id": 10,
-  "last_link_id": 16,
+  "last_node_id": 13,
+  "last_link_id": 19,
   "nodes": [
-    {
-      "id": 6,
-      "type": "Generator/FormulaXY",
-      "pos": {
-        "0": 10,
-        "1": 700,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 196
-      },
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            5
-          ]
-        }
-      ],
-      "properties": {
-        "formula": "sqrt(pow(x - 0.5, 2) + pow(y - 0.5, 2)) - 0.3"
-      }
-    },
     {
       "id": 7,
       "type": "Expression/Formula1",
@@ -1334,6 +1353,42 @@ const exampleIsland = {
       "title": "Formula1",
       "properties": {
         "formula": "-a"
+      }
+    },
+    {
+      "id": 6,
+      "type": "Generator/FormulaXY",
+      "pos": {
+        "0": 10,
+        "1": 700,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "formula": "sqrt(pow(x - 0.5, 2.0) + pow(y - 0.5, 2.0)) - 0.3"
       }
     },
     {
@@ -1380,11 +1435,11 @@ const exampleIsland = {
       }
     },
     {
-      "id": 9,
-      "type": "Math/Clamp",
+      "id": 5,
+      "type": "Math/Add",
       "pos": {
-        "0": 790,
-        "1": 700,
+        "0": 829,
+        "1": 378,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1395,17 +1450,22 @@ const exampleIsland = {
         "9": 0
       },
       "size": {
-        "0": 210,
-        "1": 220
+        "0": 140,
+        "1": 184
       },
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
-          "name": "value",
+          "name": "A",
           "type": "array",
-          "link": 7
+          "link": 16
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 15
         }
       ],
       "outputs": [
@@ -1413,55 +1473,13 @@ const exampleIsland = {
           "name": "out",
           "type": "array",
           "links": [
-            13
-          ]
+            14
+          ],
+          "slot_index": 0
         }
       ],
-      "title": "Clamp",
-      "properties": {
-        "min": -5,
-        "max": 0.22
-      }
-    },
-    {
-      "id": 2,
-      "type": "Generator/Perlin",
-      "pos": {
-        "0": 5,
-        "1": 110,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 268
-      },
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "noise",
-          "type": "array",
-          "links": [
-            1
-          ]
-        }
-      ],
-      "title": "Perlin",
-      "properties": {
-        "frequency": 1.3,
-        "octaves": 1,
-        "amplitude": 4.7,
-        "offset": 2.9
-      }
+      "title": "Add",
+      "properties": {}
     },
     {
       "id": 3,
@@ -1503,7 +1521,92 @@ const exampleIsland = {
       ],
       "title": "Scale",
       "properties": {
-        "amount": 0.2
+        "amount": 0.7699361165364405
+      }
+    },
+    {
+      "id": 2,
+      "type": "Generator/Perlin",
+      "pos": {
+        "0": -2,
+        "1": 108,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 268
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "title": "Perlin",
+      "properties": {
+        "frequency": 2.086527065700955,
+        "octaves": 1.178776951599124,
+        "amplitude": 2.7896978225708025,
+        "offset": 3.1594200447930265,
+        "seed": 491.89817494964643
+      }
+    },
+    {
+      "id": 9,
+      "type": "Math/Clamp",
+      "pos": {
+        "0": 790,
+        "1": 700,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            13
+          ]
+        }
+      ],
+      "title": "Clamp",
+      "properties": {
+        "min": -5,
+        "max": 0.18666508992513098
       }
     },
     {
@@ -1547,56 +1650,9 @@ const exampleIsland = {
       ],
       "title": "Clamp",
       "properties": {
-        "min": -3.3,
-        "max": 0.75
+        "min": -3.787254163954003,
+        "max": 0.06837153116862282
       }
-    },
-    {
-      "id": 5,
-      "type": "Math/Add",
-      "pos": {
-        "0": 829,
-        "1": 376,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 184
-      },
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "A",
-          "type": "array",
-          "link": 16
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": 15
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            14
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Add",
-      "properties": {}
     },
     {
       "id": 1,
@@ -1634,17 +1690,18 @@ const exampleIsland = {
       "title": "Perlin",
       "properties": {
         "frequency": 6.2,
-        "octaves": 4,
-        "amplitude": 3.4,
-        "offset": 2.6
+        "octaves": 6.536795616149902,
+        "amplitude": 4.426665327284072,
+        "offset": 3.346721437242296,
+        "seed": 367.4671871444707
       }
     },
     {
       "id": 10,
       "type": "Math/Add",
       "pos": {
-        "0": 1117,
-        "1": 410,
+        "0": 1116,
+        "1": 412,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1677,7 +1734,8 @@ const exampleIsland = {
         {
           "name": "out",
           "type": "array",
-          "links": null
+          "links": [],
+          "slot_index": 0
         }
       ],
       "title": "Add",

@@ -1,4 +1,4 @@
-class WarpNode extends NoiseNode {
+class WarpNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -11,31 +11,34 @@ class WarpNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const warp = this.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-        const intensity = this.properties.intensity;
+        this.updateInputTexture(0, this.getInputData(0));
+        this.updateInputTexture(1, this.getInputData(1));
 
-        const sample = (arr, x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH-1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT-1, Math.round(y)));
-            return arr[iy*WIDTH + ix];
-        };
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                const offset = warp[y*WIDTH + x] * intensity;
-                out[y*WIDTH + x] = sample(input, x + offset, y + offset);
-            }
-        }
+        uniform sampler2D tex0;
+        uniform sampler2D tex1; // warp map
+        uniform float intensity;
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        void main() {
+            float w = texture(tex1, vUv).r;
+            vec2 uv = vUv + intensity / float(${WIDTH}) * vec2(w, w);
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            float v = texture(tex0, uv).r;
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader("warpGPU", frag, 2, { intensity: this.properties.intensity });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Transform/Warp", WarpNode);
 
-class RotateNode extends NoiseNode {
+class RotateNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -47,34 +50,35 @@ class RotateNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-        const angle = this.properties.angle * Math.PI / 180;
-        const cx = WIDTH/2, cy = HEIGHT/2;
-        const cos = Math.cos(-angle), sin = Math.sin(-angle);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        const sample = (x, y) => {
-            x = Math.max(0, Math.min(WIDTH-1, x));
-            y = Math.max(0, Math.min(HEIGHT-1, y));
-            return input[y*WIDTH + x];
-        };
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        for (let y=0; y<HEIGHT; y++) {
-            for (let x=0; x<WIDTH; x++) {
-                const dx = x - cx, dy = y - cy;
-                const sx = Math.round(cos*dx - sin*dy + cx);
-                const sy = Math.round(sin*dx + cos*dy + cy);
-                out[y*WIDTH + x] = sample(sx, sy);
-            }
-        }
+        uniform sampler2D tex0;
+        uniform float angle;
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        void main() {
+            vec2 uv = vUv - 0.5;
+            float c = cos(-angle);
+            float s = sin(-angle);
+            uv = mat2(c, -s, s, c) * uv;
+            uv += 0.5;
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            float v = texture(tex0, uv).r;
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
+
+        this.runShader("rotateGPU", frag, 1, { angle: this.properties.angle * 3.141592 / 180 });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Transform/Rotate", RotateNode);
 
-class OffsetNode extends NoiseNode {
+class OffsetNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -87,32 +91,33 @@ class OffsetNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const out = new Array(WIDTH * HEIGHT);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        const ox = this.properties.offsetX * WIDTH;
-        const oy = this.properties.offsetY * HEIGHT;
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH - 1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT - 1, Math.round(y)));
-            return input[iy * WIDTH + ix];
-        };
+        uniform sampler2D tex0;
+        uniform float offsetX;
+        uniform float offsetY;
 
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                out[y * WIDTH + x] = sample(x - ox, y - oy);
-            }
-        }
+        void main() {
+            vec2 uv = vUv + vec2(offsetX, offsetY);
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            float v = texture(tex0, uv).r;
+            fragColor = vec4(vec3(v), 1.0);
+        }`;
 
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.runShader("offsetGPU", frag, 1, { offsetX: this.properties.offsetX, offsetY: this.properties.offsetY });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Offset", OffsetNode);
 
-class MirrorNode extends NoiseNode {
+class MirrorNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("value", "array");
@@ -125,24 +130,28 @@ class MirrorNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-
-        for (let y=0; y<HEIGHT; y++) {
-            for (let x=0; x<WIDTH; x++) {
-                let sx = this.properties.horizontal ? WIDTH-1 - x : x;
-                let sy = this.properties.vertical ? HEIGHT-1 - y : y;
-                out[y*WIDTH + x] = input[sy*WIDTH + sx];
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.updateInputTexture(0, this.getInputData(0));
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform bool horizontal;
+        uniform bool vertical;
+        void main() {
+            vec2 uv = vUv;
+            if(horizontal) uv.x = 1.0 - uv.x;
+            if(vertical) uv.y = 1.0 - uv.y;
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
+        this.runShader("mirrorGPU", frag, 1, { horizontal: this.properties.horizontal, vertical: this.properties.vertical });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 LiteGraph.registerNodeType("Transform/Mirror", MirrorNode);
 
-class StretchNode extends NoiseNode {
+class StretchNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -155,48 +164,31 @@ class StretchNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
-
-        const cx = WIDTH / 2;
-        const cy = HEIGHT / 2;
-
-        const sx = this.properties.scaleX;
-        const sy = this.properties.scaleY;
-
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH - 1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT - 1, Math.round(y)));
-            return input[iy * WIDTH + ix];
-        };
-
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-
-                // move to center
-                let dx = x - cx;
-                let dy = y - cy;
-
-                // inverse scale (important!)
-                dx /= sx;
-                dy /= sy;
-
-                // back to image space
-                const sxp = dx + cx;
-                const syp = dy + cy;
-
-                out[y * WIDTH + x] = sample(sxp, syp);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.updateInputTexture(0, this.getInputData(0));
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform float scaleX;
+        uniform float scaleY;
+        void main() {
+            vec2 uv = vUv - 0.5;
+            uv.x /= scaleX;
+            uv.y /= scaleY;
+            uv += 0.5;
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
+        this.runShader("stretchGPU", frag, 1, { scaleX: this.properties.scaleX, scaleY: this.properties.scaleY });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Stretch", StretchNode);
 
-class CartesianToPolar extends NoiseNode {
+class CartesianToPolar extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -208,50 +200,33 @@ class CartesianToPolar extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const out = new Array(WIDTH * HEIGHT);
-
-        const cx = WIDTH / 2;
-        const cy = HEIGHT / 2;
-        const maxRadius = Math.min(cx, cy) * this.properties.scale;
-
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH - 1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT - 1, Math.round(y)));
-            return input[iy * WIDTH + ix];
-        };
-
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-
-                const dx = x - cx;
-                const dy = y - cy;
-
-                const radius = Math.sqrt(dx*dx + dy*dy);
-                const angle = Math.atan2(dy, dx);
-
-                // normalize angle 0..1
-                const u = (angle + Math.PI) / (2 * Math.PI);
-                // normalize radius 0..1
-                const v = radius / maxRadius;
-
-                // map into input space
-                const sx = u * WIDTH;
-                const sy = v * HEIGHT;
-
-                out[y * WIDTH + x] = sample(sx, sy);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.updateInputTexture(0, this.getInputData(0));
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform float scale;
+        void main() {
+            vec2 uv = vUv;
+            vec2 center = vec2(0.5);
+            vec2 d = uv - center;
+            float r = length(d) / 0.5 * scale;
+            float a = atan(d.y, d.x);
+            vec2 newUV = vec2((a + 3.141592)/6.283185, r);
+            newUV = clamp(newUV, vec2(0.0), vec2(1.0));
+            fragColor = vec4(vec3(texture(tex0, newUV).r), 1.0);
+        }`;
+        this.runShader("cartesianToPolarGPU", frag, 1, { scale: this.properties.scale });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Cartesian to Polar", CartesianToPolar);
 
 
-class PolarToCartesian extends NoiseNode {
+class PolarToCartesian extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -263,42 +238,30 @@ class PolarToCartesian extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const out = new Array(WIDTH * HEIGHT);
-
-        const cx = WIDTH / 2;
-        const cy = HEIGHT / 2;
-        const maxRadius = Math.min(cx, cy) * this.properties.scale;
-
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH - 1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT - 1, Math.round(y)));
-            return input[iy * WIDTH + ix];
-        };
-
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-
-                // output space to polar coords
-                const angle = (x / WIDTH) * 2 * Math.PI;
-                const radius = (y / HEIGHT) * maxRadius;
-
-                // convert to cartesian
-                const sx = cx + Math.cos(angle) * radius;
-                const sy = cy + Math.sin(angle) * radius;
-
-                out[y * WIDTH + x] = sample(sx, sy);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.updateInputTexture(0, this.getInputData(0));
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform float scale;
+        void main() {
+            vec2 center = vec2(0.5);
+            float angle = vUv.x * 6.283185;
+            float radius = vUv.y * scale;
+            vec2 uv = center + vec2(cos(angle), sin(angle)) * radius;
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
+        this.runShader("polarToCartesianGPU", frag, 1, { scale: this.properties.scale });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Polar to Cartesian", PolarToCartesian);
 
-class RadialWarpNode extends NoiseNode {
+class RadialWarpNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -314,55 +277,39 @@ class RadialWarpNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const warp = this.getInputData(1) || new Array(WIDTH*HEIGHT).fill(0);
+        this.updateInputTexture(0, this.getInputData(0));
+        this.updateInputTexture(1, this.getInputData(1));
 
-        const out = new Array(WIDTH*HEIGHT);
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform sampler2D tex1;
+        uniform float angleStrength;
+        uniform float radiusStrength;
+        void main() {
+            vec2 center = vec2(0.5);
+            vec2 d = vUv - center;
+            float radius = length(d);
+            float angle = atan(d.y, d.x);
+            float w = texture(tex1, vUv).r;
+            angle += (w - 0.5) * angleStrength;
+            radius += (w - 0.5) * radiusStrength;
+            vec2 uv = center + vec2(cos(angle), sin(angle)) * radius;
+            uv = clamp(uv, vec2(0.0), vec2(1.0));
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
 
-        const cx = WIDTH / 2;
-        const cy = HEIGHT / 2;
-        const maxRadius = Math.min(cx, cy);
-
-        const angleStrength = this.properties.angleStrength;
-        const radiusStrength = this.properties.radiusStrength;
-
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH-1, Math.round(x)));
-            const iy = Math.max(0, Math.min(HEIGHT-1, Math.round(y)));
-            return input[iy*WIDTH + ix];
-        };
-
-        for (let y=0; y<HEIGHT; y++) {
-            for (let x=0; x<WIDTH; x++) {
-
-                const dx = x - cx;
-                const dy = y - cy;
-
-                let radius = Math.sqrt(dx*dx + dy*dy);
-                let angle = Math.atan2(dy, dx);
-
-                const w = warp[y*WIDTH + x]; // 0..1
-
-                // apply warp
-                angle += (w - 0.5) * angleStrength;
-                radius += (w - 0.5) * radiusStrength * maxRadius;
-
-                // back to cartesian
-                const sx = cx + Math.cos(angle) * radius;
-                const sy = cy + Math.sin(angle) * radius;
-
-                out[y*WIDTH + x] = sample(sx, sy);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.runShader("radialWarpGPU", frag, 2, { angleStrength: this.properties.angleStrength, radiusStrength: this.properties.radiusStrength });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Radial Warp", RadialWarpNode);
 
-class TileNode extends NoiseNode {
+class TileNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -383,54 +330,38 @@ class TileNode extends NoiseNode {
     }
 
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const out = new Array(WIDTH * HEIGHT);
-
-        const repeatX = Math.max(1, Math.round(this.properties.repeatX));
-        const repeatY = Math.max(1, Math.round(this.properties.repeatY));
-        const seamless = this.properties.seamless;
-
-        const sample = (x, y) => {
-            let u = x / WIDTH;
-            let v = y / HEIGHT;
-
-            // Scale to repeats
-            u *= repeatX;
-            v *= repeatY;
-
-            if (seamless) {
-                // Mirror/flip for seamless tiling
-                u = u % 2;      // range 0..2
-                v = v % 2;
-                if (u > 1) u = 2 - u; // mirror
-                if (v > 1) v = 2 - v;
+        this.updateInputTexture(0, this.getInputData(0));
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform float repeatX;
+        uniform float repeatY;
+        uniform bool seamless;
+        void main() {
+            vec2 uv = vUv * vec2(repeatX, repeatY);
+            if(seamless) {
+                uv = mod(uv, 2.0);
+                uv = vec2(uv.x > 1.0 ? 2.0 - uv.x : uv.x, uv.y > 1.0 ? 2.0 - uv.y : uv.y);
             } else {
-                // Normal repeat
-                u = u % 1;
-                v = v % 1;
-                if (u < 0) u += 1;
-                if (v < 0) v += 1;
+                uv = mod(uv, 1.0);
+                uv = max(uv, 0.0);
             }
-
-            const ix = Math.round(u * (WIDTH - 1));
-            const iy = Math.round(v * (HEIGHT - 1));
-            return input[iy * WIDTH + ix];
-        };
-
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                out[y * WIDTH + x] = sample(x, y);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
+        this.runShader("tileGPU", frag, 1, { 
+            repeatX: Math.round(this.properties.repeatX), 
+            repeatY: Math.round(this.properties.repeatY),
+            seamless: this.properties.seamless });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
 LiteGraph.registerNodeType("Transform/Tile", TileNode);
 
-class DisplaceNode extends NoiseNode {
+class DisplaceNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input", "array");
@@ -447,31 +378,28 @@ class DisplaceNode extends NoiseNode {
     }
 
     onExecute() {
-        const img = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
-        const dx = this.getInputData(1) || new Array(WIDTH * HEIGHT).fill(0);
-        const dy = this.getInputData(2) || new Array(WIDTH * HEIGHT).fill(0);
+        this.updateInputTexture(0, this.getInputData(0));
+        this.updateInputTexture(1, this.getInputData(1));
+        this.updateInputTexture(2, this.getInputData(2));
 
-        const out = new Array(WIDTH * HEIGHT);
-        const strength = this.properties.strength;
+        const frag = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D tex0;
+        uniform sampler2D tex1;
+        uniform sampler2D tex2;
+        uniform float strength;
+        void main() {
+            float dx = (texture(tex1, vUv).r - 0.5) * strength / float(${WIDTH});
+            float dy = (texture(tex2, vUv).r - 0.5) * strength / float(${HEIGHT});
+            vec2 uv = clamp(vUv + vec2(dx, dy), vec2(0.0), vec2(1.0));
+            fragColor = vec4(vec3(texture(tex0, uv).r), 1.0);
+        }`;
 
-        const sample = (x, y) => {
-            const ix = Math.max(0, Math.min(WIDTH - 1, x | 0));
-            const iy = Math.max(0, Math.min(HEIGHT - 1, y | 0));
-            return img[iy * WIDTH + ix];
-        };
-
-        for (let y = 0; y < HEIGHT; y++) {
-            for (let x = 0; x < WIDTH; x++) {
-                const i = y * WIDTH + x;
-                const ox = (dx[i] - 0.5) * strength;
-                const oy = (dy[i] - 0.5) * strength;
-
-                out[i] = sample(x + ox, y + oy);
-            }
-        }
-
-        this.setOutputData(0, out);
-        this.drawPreview(out);
+        this.runShader("displaceGPU", frag, 3, { strength: this.properties.strength });
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
