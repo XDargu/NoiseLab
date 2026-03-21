@@ -361,3 +361,71 @@ class RadialWarpNode extends NoiseNode {
 }
 
 LiteGraph.registerNodeType("Transform/Radial Warp", RadialWarpNode);
+
+class TileNode extends NoiseNode {
+    constructor() {
+        super();
+        this.addInput("input", "array");
+        this.addOutput("out", "array");
+
+        this.properties = {
+            repeatX: 2,
+            repeatY: 2,
+            seamless: true
+        };
+
+        this.addWidget("slider", "Repeat X", this.properties.repeatX, { min: 1, max: 10, step: 1, precision: 0, property: "repeatX" });
+        this.addWidget("slider", "Repeat Y", this.properties.repeatY, { min: 1, max: 10, step: 1, precision: 0, property: "repeatY" });
+        this.addWidget("toggle", "Seamless", this.properties.seamless, { property: "seamless" });
+
+        this.title = "Tile";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const input = this.getInputData(0) || new Array(WIDTH * HEIGHT).fill(0);
+        const out = new Array(WIDTH * HEIGHT);
+
+        const repeatX = Math.max(1, Math.round(this.properties.repeatX));
+        const repeatY = Math.max(1, Math.round(this.properties.repeatY));
+        const seamless = this.properties.seamless;
+
+        const sample = (x, y) => {
+            let u = x / WIDTH;
+            let v = y / HEIGHT;
+
+            // Scale to repeats
+            u *= repeatX;
+            v *= repeatY;
+
+            if (seamless) {
+                // Mirror/flip for seamless tiling
+                u = u % 2;      // range 0..2
+                v = v % 2;
+                if (u > 1) u = 2 - u; // mirror
+                if (v > 1) v = 2 - v;
+            } else {
+                // Normal repeat
+                u = u % 1;
+                v = v % 1;
+                if (u < 0) u += 1;
+                if (v < 0) v += 1;
+            }
+
+            const ix = Math.round(u * (WIDTH - 1));
+            const iy = Math.round(v * (HEIGHT - 1));
+            return input[iy * WIDTH + ix];
+        };
+
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                out[y * WIDTH + x] = sample(x, y);
+            }
+        }
+
+        this.setOutputData(0, out);
+        this.drawPreview(out);
+    }
+}
+
+LiteGraph.registerNodeType("Transform/Tile", TileNode);
