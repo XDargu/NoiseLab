@@ -388,8 +388,8 @@ class CheckerboardNode extends GPUNodeBase {
     constructor() {
         super();
         this.addOutput("out", "array");
-        this.properties = { size: 32 };
-        this.addWidget("slider", "Size", this.properties.size, { min: 1, max: 128, property: "size" });
+        this.properties = { squares: 32 };
+        this.addWidget("slider", "Squares", this.properties.squares, { min: 2, max: 128, step: 1, precision: 0, property: "squares" });
         this.title = "Checkerboard";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
@@ -397,10 +397,11 @@ class CheckerboardNode extends GPUNodeBase {
     onExecute() {
         const fs = `#version 300 es
         precision highp float;
-        uniform float size;
+        uniform float squares;
         in vec2 vUv;
         out vec4 fragColor;
         void main() {
+            float size = ${WIDTH}.0 / squares;
             vec2 uv = vUv * vec2(${WIDTH}.0, ${HEIGHT}.0);
             float val = mod(floor(uv.x / size) + floor(uv.y / size), 2.0);
             fragColor = vec4(val, 0.0, 0.0, 1.0);
@@ -410,7 +411,7 @@ class CheckerboardNode extends GPUNodeBase {
             `checkerboard`,
             fs,
             0,
-            { size: this.properties.size },
+            { squares: Math.round(this.properties.squares) },
         );
 
         this.setOutputTexture();
