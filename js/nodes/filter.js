@@ -6,29 +6,32 @@ class BlurNode extends GPUNodeBase {
         this.addOutput("out", "array");
         this.properties = { amount: 2, passes: 3 };
         this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, property: "amount" });
-        this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 5, step: 1, property: "passes" });
+        this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 5, step: 1, precision: 0, property: "passes" });
         this.title = "Blur";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
-    runPass(direction, radius) {
+    runPass(direction, normalizedRadius) {
         const frag = `#version 300 es
         precision highp float;
         in vec2 vUv;
         out vec4 fragColor;
         uniform sampler2D tex0;
         uniform vec2 direction;
-        uniform float radius;
+        uniform float normalizedRadius;
 
         void main() {
-            vec2 texel = 1.0 / vec2(textureSize(tex0,0));
+            vec2 texSize = vec2(textureSize(tex0, 0));
+            float radiusInPixels = normalizedRadius * max(texSize.x, texSize.y);
+            vec2 texel = 1.0 / texSize * 5.0;
             float sum = 0.0;
             float count = 0.0;
 
-            for(int i=-20;i<=20;i++){
+            for(int i=-10; i<=10; i++){
                 float fi = float(i);
-                if(abs(fi)>radius) continue;
-                sum += texture(tex0, vUv + direction*texel*fi).r;
+                if(abs(fi) > radiusInPixels) continue;
+                vec2 offset = direction * texel * fi;
+                sum += texture(tex0, vUv + offset).r;
                 count += 1.0;
             }
 
@@ -39,7 +42,7 @@ class BlurNode extends GPUNodeBase {
             "blur_pass",
             frag,
             1,
-            { direction, radius },
+            { direction, normalizedRadius },
             this.pingWrite(),
             [this.pingRead()]
         );
@@ -50,7 +53,7 @@ class BlurNode extends GPUNodeBase {
     onExecute() {
         this.updateInputTexture(0, this.getInputData(0));
 
-        const amount = Math.max(1, Math.floor(this.properties.amount));
+        const amount = Math.max(0.001, this.properties.amount * 0.001);
         const passes = Math.max(1, Math.floor(this.properties.passes));
 
         // Copy input into ping-pong texture 0
@@ -69,7 +72,7 @@ class BlurNode extends GPUNodeBase {
         );
         this._pingCurrent = 0;
 
-        for(let i=0;i<passes;i++){
+        for(let i=0; i<passes; i++){
             this.runPass([1,0], amount); // horizontal
             this.runPass([0,1], amount); // vertical
         }
