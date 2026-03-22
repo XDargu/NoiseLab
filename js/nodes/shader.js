@@ -4,7 +4,7 @@ function createShader(gl, type, source) {
     gl.compileShader(shader);
     if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         console.error(gl.getShaderInfoLog(shader));
-        throw "Shader compile error";
+        throw "Shader compile error: " + gl.getShaderInfoLog(shader);
     }
     return shader;
 }
@@ -171,54 +171,60 @@ class GPUNodeBase extends NoiseNode {
     }
 
     runShader(key, fsSource, inputCount = 1, uniformValues = {}, framebuffer = null, inputTexturesOverride = null) {
-        const gl = this.gl;
-        const program = GPU.getProgram(key, quadVS, fsSource);
-        gl.useProgram(program);
 
-        // Bind quad
-        const posLoc = gl.getAttribLocation(program, "aPos");
-        gl.enableVertexAttribArray(posLoc);
-        gl.bindBuffer(gl.ARRAY_BUFFER, GPU.quadBuffer);
-        gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+        try {
+            const gl = this.gl;
+            const program = GPU.getProgram(key, quadVS, fsSource);
+            gl.useProgram(program);
 
-        // Bind input textures
-        const textures = inputTexturesOverride || this._inputTextures;
+            // Bind quad
+            const posLoc = gl.getAttribLocation(program, "aPos");
+            gl.enableVertexAttribArray(posLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, GPU.quadBuffer);
+            gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
-        for (let i = 0; i < inputCount; i++) {
-            gl.activeTexture(gl.TEXTURE0 + i);
-            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
-            gl.uniform1i(gl.getUniformLocation(program, "tex" + i), i);
+            // Bind input textures
+            const textures = inputTexturesOverride || this._inputTextures;
+
+            for (let i = 0; i < inputCount; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+                gl.uniform1i(gl.getUniformLocation(program, "tex" + i), i);
+            }
+
+            // Set uniforms
+            Object.entries(uniformValues).forEach(([name, value]) => {
+                const loc = gl.getUniformLocation(program, name);
+                if (typeof value === "number" || typeof value === "boolean")
+                {
+                    gl.uniform1f(loc, value);
+                }
+                else if (Array.isArray(value))
+                {
+                    if (value.length === 2)
+                        gl.uniform2fv(loc, value);
+                    else if (value.length === 3)
+                        gl.uniform3fv(loc, value);
+                    else if (value.length === 4)
+                        gl.uniform4fv(loc, value);
+                }
+                else
+                {
+                    if (value.type == "int")
+                        gl.uniform1i(loc, value.value);
+                    if (value.type == "float")
+                        gl.uniform1f(loc, value.value);
+                }
+            });
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer || this.framebuffer);
+            gl.viewport(0, 0, WIDTH, HEIGHT);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        } catch(e)
+        {
+            this._errorMsg = e;
         }
-
-        // Set uniforms
-        Object.entries(uniformValues).forEach(([name, value]) => {
-            const loc = gl.getUniformLocation(program, name);
-            if (typeof value === "number" || typeof value === "boolean")
-            {
-                gl.uniform1f(loc, value);
-            }
-            else if (Array.isArray(value))
-            {
-                if (value.length === 2)
-                    gl.uniform2fv(loc, value);
-                else if (value.length === 3)
-                    gl.uniform3fv(loc, value);
-                else if (value.length === 4)
-                    gl.uniform4fv(loc, value);
-            }
-            else
-            {
-                if (value.type == "int")
-                    gl.uniform1i(loc, value.value);
-                if (value.type == "float")
-                    gl.uniform1f(loc, value.value);
-            }
-        });
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer || this.framebuffer);
-        gl.viewport(0, 0, WIDTH, HEIGHT);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     drawPreviewTexture(ctx = this.previewCtx, fsOverride = null, uniforms = {}) {
