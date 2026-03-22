@@ -191,7 +191,7 @@ class SaturateNode extends GPUNodeBase {
 
 LiteGraph.registerNodeType("Math/Saturate", SaturateNode);
 
-/*class NormalizeNode extends NoiseNode {
+class NormalizeNode extends GPUNodeBase {
     constructor() {
         super();
         this.addInput("input","array");
@@ -200,33 +200,137 @@ LiteGraph.registerNodeType("Math/Saturate", SaturateNode);
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
+    // --- Reduction pass (min OR max) ---
+    runReductionPass(step, mode) {
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform float step;
+        uniform int uMode; // 0=min, 1=max
+
+        void main() {
+            vec2 texel = 1.0 / vec2(textureSize(tex0,0));
+
+            float v0 = texture(tex0, vUv).r;
+            float v1 = texture(tex0, vUv + texel * vec2(step, 0.0)).r;
+            float v2 = texture(tex0, vUv + texel * vec2(0.0, step)).r;
+            float v3 = texture(tex0, vUv + texel * vec2(step, step)).r;
+
+            float result;
+
+            if (uMode == 0) {
+                result = min(min(v0, v1), min(v2, v3));
+            } else {
+                result = max(max(v0, v1), max(v2, v3));
+            }
+
+            fragColor = vec4(result, 0.0, 0.0, 1.0);
+        }`;
+
+        this.runShader(
+            "reduce_" + mode,
+            frag,
+            1,
+            {
+                step,
+                uMode: { type: "int", value: mode === "min" ? 0 : 1 }
+            },
+            this.pingWrite(),
+            [this.pingRead()]
+        );
+
+        this.swapPing();
+    }
+
+    computeExtreme(mode) {
+        // copy input
+        this.runShader(
+            "copy_reduce_" + mode,
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main() {
+                float v = texture(tex0, vUv).r;
+                fragColor = vec4(v,0,0,1);
+            }`,
+            1,
+            {},
+            this._pingFramebuffers[0],
+            [this._inputTextures[0]]
+        );
+
+        this._pingCurrent = 0;
+
+        let step = 1.0;
+
+        // log2(512)=9 should be safe upper bound, might need increase for larger textures
+        for (let i = 0; i < 9; i++) {
+            this.runReductionPass(step, mode);
+            step *= 2.0;
+        }
+
+        // read 1 pixel
+        const gl = this.gl;
+        const fbo = gl.createFramebuffer();
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.pingRead(), 0);
+
+        const px = new Float32Array(4);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, px);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.deleteFramebuffer(fbo);
+
+        return px[0];
+    }
+
     onExecute() {
-        const input = this.getInputData(0) || new Array(WIDTH*HEIGHT).fill(0);
-        const out = new Array(WIDTH*HEIGHT);
+        this.updateInputTexture(0, this.getInputData(0));
 
-        let min = Infinity;
-        let max = -Infinity;
+        const min = this.computeExtreme("min");
+        const max = this.computeExtreme("max");
 
-        // find min/max
-        for(let i=0;i<input.length;i++){
-            const v = input[i];
-            if(v < min) min = v;
-            if(v > max) max = v;
-        }
+        const range = (max - min) || 1.0;
 
-        const range = max - min || 1; // avoid div by 0
+        const frag = `#version 300 es
+        precision highp float;
 
-        // normalize
-        for(let i=0;i<input.length;i++){
-            out[i] = (input[i] - min) / range;
-        }
+        in vec2 vUv;
+        out vec4 fragColor;
 
-        this.setOutputData(0,out);
-        this.drawPreview(out);
+        uniform sampler2D tex0;
+        uniform float uMin;
+        uniform float uRange;
+
+        void main() {
+            float v = texture(tex0, vUv).r;
+            float n = (v - uMin) / uRange;
+            fragColor = vec4(n,0,0,1);
+        }`;
+
+        this.runShader(
+            "normalize_final",
+            frag,
+            1,
+            {
+                uMin: min,
+                uRange: range
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
     }
 }
 
-LiteGraph.registerNodeType("Math/Normalize", NormalizeNode);*/
+LiteGraph.registerNodeType("Math/Normalize", NormalizeNode);
 
 class InvertNode extends GPUNodeBase {
     constructor() {
