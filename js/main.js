@@ -1,26 +1,26 @@
 // --- Canvas setup ---
-const canvas = document.getElementById("noiseCanvas");
-const ctx = canvas.getContext("2d");
+const noiseCanvas = document.getElementById("noiseCanvas");
+const ctx = noiseCanvas.getContext("2d");
 let WIDTH = 1024;
 let HEIGHT = 1024;
 
 let maximized = false;
-canvas.onclick = () => {
+noiseCanvas.onclick = () => {
     if (maximized)
     {
-        canvas.style.width = "256px";
-        canvas.style.height = "256px";
+        noiseCanvas.style.width = "256px";
+        noiseCanvas.style.height = "256px";
     }
     else
     {
-        canvas.style.width = "calc(100vh - 70px)";
-        canvas.style.height = "calc(100vh - 70px)";
+        noiseCanvas.style.width = "calc(100vh - 70px)";
+        noiseCanvas.style.height = "calc(100vh - 70px)";
     }
 
     maximized = !maximized;
 }
 
-canvas.scale = 4;
+noiseCanvas.scale = 4;
 
 const PREVIEW_W = 128;
 const PREVIEW_H = 128;
