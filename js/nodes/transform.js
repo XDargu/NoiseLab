@@ -361,6 +361,245 @@ class TileNode extends GPUNodeBase {
 
 LiteGraph.registerNodeType("Transform/Tile", TileNode);
 
+class TileSamplerNode extends GPUNodeBase {
+    constructor() {
+        super();
+        this.addInput("pattern", "array");
+        this.addOutput("out", "array");
+
+        this.properties = {
+            tilesX: 5,
+            tilesY: 5,
+            scale: 0.8,
+            randomPos: 0.3,
+            randomScale: 0.2,
+            randomRot: 1.0,
+            density: 1.0,
+            mode: 0,
+            seed: 1
+        };
+
+        this.addWidget("slider", "Tiles X", this.properties.tilesX, { min: 1, max: 20, step: 1, property: "tilesX" });
+        this.addWidget("slider", "Tiles Y", this.properties.tilesY, { min: 1, max: 20, step: 1, property: "tilesY" });
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 0.1, max: 2.0, step: 0.01, property: "scale" });
+        this.addWidget("slider", "Rnd Pos", this.properties.randomPos, { min: 0.0, max: 1.0, step: 0.01, property: "randomPos" });
+        this.addWidget("slider", "Rnd Scale", this.properties.randomScale, { min: 0.0, max: 1.0, step: 0.01, property: "randomScale" });
+        this.addWidget("slider", "Rnd Rot", this.properties.randomRot, { min: 0.0, max: 1.0, step: 0.01, property: "randomRot" });
+        this.addWidget("slider", "Density", this.properties.density, { min: 0.0, max: 1.0, step: 0.01, property: "density" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+
+        this.title = "Tile Sampler";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        this.updateInputTexture(0, this.getInputData(0));
+
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+
+        uniform float tilesX;
+        uniform float tilesY;
+        uniform float scale;
+        uniform float randomPos;
+        uniform float randomScale;
+        uniform float randomRot;
+        uniform float density;
+        uniform float seed;
+
+        float hash(vec2 p) {
+            return fract(sin(dot(p + seed, vec2(127.1,311.7))) * 43758.5453123);
+        }
+
+        mat2 rot(float a){
+            float s = sin(a), c = cos(a);
+            return mat2(c,-s,s,c);
+        }
+
+        void main() {
+            vec2 grid = vec2(tilesX, tilesY);
+            vec2 cellUV = vUv * grid;
+            vec2 baseCell = floor(cellUV);
+
+            int mode = 0; // TODO: Expose as property
+            float result = 0.0;
+
+            for(int y = -1; y <= 1; y++) {
+                for(int x = -1; x <= 1; x++) {
+
+                    vec2 cell = baseCell + vec2(float(x), float(y));
+
+                    // Density check
+                    float keep = hash(cell + 100.0);
+                    if(keep > density) continue;
+
+                    float r1 = hash(cell);
+                    float r2 = hash(cell + 10.0);
+                    float r3 = hash(cell + 20.0);
+                    float r4 = hash(cell + 30.0);
+
+                    vec2 jitter = (vec2(r1, r2) - 0.5) * randomPos;
+                    float s = scale * mix(1.0, r3, randomScale);
+                    float angle = (r4 - 0.5) * 6.28318 * randomRot;
+
+                    vec2 localUV = fract(cellUV) - vec2(float(x), float(y));
+                    localUV -= 0.5;
+                    localUV -= jitter;
+
+                    localUV = rot(angle) * localUV;
+                    localUV /= s;
+                    localUV += 0.5;
+
+                    if(localUV.x >= 0.0 && localUV.y >= 0.0 &&
+                       localUV.x <= 1.0 && localUV.y <= 1.0) {
+
+                        float v = texture(tex0, localUV).r;
+
+                        if(mode == 0)
+                            result = max(result, v);
+                        else
+                            result += v;
+                    }
+                }
+            }
+
+            if(mode == 1)
+                result = clamp(result, 0.0, 1.0);
+
+            fragColor = vec4(vec3(result), 1.0);
+        }`;
+
+        this.runShader(
+            "tile_sampler",
+            frag,
+            1,
+            this.properties,
+            this.framebuffer,
+            [this._inputTextures[0]]
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
+    }
+}
+
+LiteGraph.registerNodeType("Transform/TileSampler", TileSamplerNode);
+
+class PoissonSamplerNode extends GPUNodeBase {
+    constructor() {
+        super();
+        this.addInput("pattern", "array");
+        this.addOutput("out", "array");
+
+        this.properties = {
+            scale: 8.0,
+            radius: 0.15,
+            randomScale: 0.3,
+            randomRot: 1.0,
+            seed: 1,
+        };
+
+        this.addWidget("slider", "Scale", this.properties.scale, { min: 1, max: 20, step: 1, property: "scale" });
+        this.addWidget("slider", "Radius", this.properties.radius, { min: 0.01, max: 0.5, step: 0.01, property: "radius" });
+        this.addWidget("slider", "Rnd Scale", this.properties.randomScale, { min: 0, max: 1, step: 0.01, property: "randomScale" });
+        this.addWidget("slider", "Rnd Rot", this.properties.randomRot, { min: 0, max: 1, step: 0.01, property: "randomRot" });
+        this.addWidget("slider", "Seed", this.properties.seed, { min: 1, max: 1000, step: 1, property: "seed" });
+
+        this.title = "Poisson Sampler";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        this.updateInputTexture(0, this.getInputData(0));
+
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform float scale;
+        uniform float radius;
+        uniform float randomScale;
+        uniform float randomRot;
+        uniform float seed;
+
+        float hash(vec2 p){
+            return fract(sin(dot(p + seed, vec2(127.1,311.7))) * 43758.5453123);
+        }
+
+        vec2 hash2(vec2 p){
+            return vec2(hash(p), hash(p+1.3));
+        }
+
+        mat2 rot(float a){
+            float s = sin(a), c = cos(a);
+            return mat2(c,-s,s,c);
+        }
+
+        void main() {
+            vec2 gridUV = vUv * scale;
+            vec2 baseCell = floor(gridUV);
+
+            float result = 0.0;
+
+            for(int y=-1;y<=1;y++){
+                for(int x=-1;x<=1;x++){
+
+                    vec2 cell = baseCell + vec2(float(x), float(y));
+
+                    vec2 rnd = hash2(cell);
+                    vec2 point = cell + rnd;
+
+                    // distance check (Poisson-ish)
+                    vec2 diff = gridUV - point;
+                    float dist = length(diff);
+
+                    if(dist > radius) continue;
+
+                    float rScale = mix(1.0, hash(cell+5.0), randomScale);
+                    float angle = (hash(cell+10.0)-0.5)*6.28318*randomRot;
+
+                    vec2 localUV = diff / radius;
+                    localUV = rot(angle) * localUV;
+                    localUV /= rScale;
+                    localUV = localUV * 0.5 + 0.5;
+
+                    if(localUV.x>=0.0 && localUV.y>=0.0 &&
+                       localUV.x<=1.0 && localUV.y<=1.0){
+
+                        float v = texture(tex0, localUV).r;
+                        result = max(result, v);
+                    }
+                }
+            }
+
+            fragColor = vec4(vec3(result),1.0);
+        }`;
+
+        this.runShader(
+            "poisson_sampler",
+            frag,
+            1,
+            this.properties,
+            this.framebuffer,
+            [this._inputTextures[0]]
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
+    }
+}
+
+LiteGraph.registerNodeType("Generator/PoissonSampler", PoissonSamplerNode);
+
+
 class DisplaceNode extends GPUNodeBase {
     constructor() {
         super();
