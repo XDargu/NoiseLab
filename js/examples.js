@@ -999,7 +999,7 @@ const examplePixelRock = {
         "1": 164
       },
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -1067,51 +1067,6 @@ const examplePixelRock = {
       }
     },
     {
-      "id": 13,
-      "type": "Filter/Threshold",
-      "pos": {
-        "0": 1445.8717041015625,
-        "1": 726.6240234375,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 220
-      },
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "input",
-          "type": "array",
-          "link": 14
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            64
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Threshold / Mask",
-      "properties": {
-        "threshold": 0.12906781641683615,
-        "soft": 0.001921198190848372
-      }
-    },
-    {
       "id": 6,
       "type": "Filter/Pixelate",
       "pos": {
@@ -1131,7 +1086,7 @@ const examplePixelRock = {
         "1": 196
       },
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [
         {
@@ -1355,7 +1310,7 @@ const examplePixelRock = {
         "1": 244
       },
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1373,51 +1328,6 @@ const examplePixelRock = {
         "scale": 40.12832397460916,
         "seed": 466.06196729254026,
         "type": "FlatCell"
-      }
-    },
-    {
-      "id": 12,
-      "type": "Filter/Blur",
-      "pos": {
-        "0": 1206,
-        "1": 729,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 210,
-        "1": 220
-      },
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "value",
-          "type": "array",
-          "link": 13
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            14
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Blur",
-      "properties": {
-        "amount": 4.980889028597767,
-        "passes": 3.534459784560795
       }
     },
     {
@@ -1575,7 +1485,7 @@ const examplePixelRock = {
         "1": 244
       },
       "flags": {},
-      "order": 1,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1615,7 +1525,7 @@ const examplePixelRock = {
         "1": 196
       },
       "flags": {},
-      "order": 3,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
@@ -1659,7 +1569,7 @@ const examplePixelRock = {
         "1": 220
       },
       "flags": {},
-      "order": 5,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -1871,50 +1781,6 @@ const examplePixelRock = {
       }
     },
     {
-      "id": 26,
-      "type": "Math/Subtract",
-      "pos": {
-        "0": 4064,
-        "1": 404,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 184
-      },
-      "flags": {},
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "A",
-          "type": "array",
-          "link": 39
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": 61
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": null
-        }
-      ],
-      "title": "Subtract",
-      "properties": {}
-    },
-    {
       "id": 37,
       "type": "Filter/Threshold",
       "pos": {
@@ -1958,6 +1824,140 @@ const examplePixelRock = {
         "threshold": 0.6646482789789692,
         "soft": 0.3488752402983285
       }
+    },
+    {
+      "id": 12,
+      "type": "Filter/Blur",
+      "pos": {
+        "0": 1206,
+        "1": 729,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Blur",
+      "properties": {
+        "amount": 4.253079752061171,
+        "passes": 1.328268876769203
+      }
+    },
+    {
+      "id": 13,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 1446,
+        "1": 727,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            64
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.07098029464078132,
+        "soft": 0.001921198190848372
+      }
+    },
+    {
+      "id": 26,
+      "type": "Math/Subtract",
+      "pos": {
+        "0": 4064,
+        "1": 404,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 39
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": null
+        }
+      ],
+      "title": "Subtract",
+      "properties": {}
     }
   ],
   "links": [
