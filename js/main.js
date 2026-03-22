@@ -1,6 +1,8 @@
 // --- Canvas setup ---
 const noiseCanvas = document.getElementById("noiseCanvas");
-const ctx = noiseCanvas.getContext("2d");
+//const ctx = noiseCanvas.getContext("2d");
+
+
 let WIDTH = 1024;
 let HEIGHT = 1024;
 
@@ -70,9 +72,11 @@ function renderNode(node, select = true){
     if(output && select)
     {
         if (node.gl)
-            node.drawPreviewTexture(ctx);
-        else
-            renderNoise(output);
+        {
+            const tex = readTexture(node.outputTexture);
+            heightTexture = loadTextureData(tex, WIDTH, HEIGHT);
+            //node.drawPreviewTexture(ctx);
+        }
     }
 }
 
