@@ -939,16 +939,408 @@ const exampleEye = {
   "version": 0.4
 };
 
-const exampleVorRocks = {
-  "last_node_id": 47,
-  "last_link_id": 85,
+const examplePixelRock = {
+  "last_node_id": 50,
+  "last_link_id": 81,
   "nodes": [
     {
-      "id": 6,
-      "type": "Generator/CellNoise",
+      "id": 2,
+      "type": "Generator/Checkerboard",
       "pos": {
-        "0": 195,
-        "1": 245,
+        "0": 216,
+        "1": 497,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "title": "Checkerboard",
+      "properties": {
+        "size": 32
+      }
+    },
+    {
+      "id": 7,
+      "type": "Filter/Sobel",
+      "pos": {
+        "0": 761.8717651367188,
+        "1": 793.6240234375,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Sobel Edge",
+      "properties": {}
+    },
+    {
+      "id": 10,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 955.8717651367188,
+        "1": 728.6240234375,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            13
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.003842396381696744,
+        "soft": 0.001921198190848372
+      }
+    },
+    {
+      "id": 13,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 1445.8717041015625,
+        "1": 726.6240234375,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            64
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.12906781641683615,
+        "soft": 0.001921198190848372
+      }
+    },
+    {
+      "id": 6,
+      "type": "Filter/Pixelate",
+      "pos": {
+        "0": 508,
+        "1": 383,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            11,
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Pixelate",
+      "properties": {
+        "pixelSize": 5.73471765280458
+      }
+    },
+    {
+      "id": 45,
+      "type": "Filter/Pixelate",
+      "pos": {
+        "0": 3019.52685546875,
+        "1": 735.0768432617188,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 71
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            72
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Pixelate",
+      "properties": {
+        "pixelSize": 5.73471765280458
+      }
+    },
+    {
+      "id": 42,
+      "type": "Filter/Pixelate",
+      "pos": {
+        "0": 1693.8717041015625,
+        "1": 725.6240234375,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 196
+      },
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 64
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            65,
+            76
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Pixelate",
+      "properties": {
+        "pixelSize": 5.73471765280458
+      }
+    },
+    {
+      "id": 29,
+      "type": "Filter/Blur",
+      "pos": {
+        "0": 2524.52685546875,
+        "1": 736.0768432617188,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 34
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            35
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Blur",
+      "properties": {
+        "amount": 6.174980468750004,
+        "passes": 3.2999913194444463
+      }
+    },
+    {
+      "id": 39,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 3256.52685546875,
+        "1": 735.0768432617188,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 72
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            60
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.8703153359769532,
+        "soft": 0
+      }
+    },
+    {
+      "id": 1,
+      "type": "Generator/Voronoi",
+      "pos": {
+        "0": 229,
+        "1": 118,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -963,7 +1355,7 @@ const exampleVorRocks = {
         "1": 244
       },
       "flags": {},
-      "order": 0,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -971,24 +1363,24 @@ const exampleVorRocks = {
           "name": "out",
           "type": "array",
           "links": [
-            8
+            4
           ],
           "slot_index": 0
         }
       ],
-      "title": "Cell Noise",
+      "title": "Voronoi",
       "properties": {
-        "points": 22.5,
-        "thickness": 1.9463230190676881,
-        "seed": 786
+        "scale": 40.12832397460916,
+        "seed": 466.06196729254026,
+        "type": "FlatCell"
       }
     },
     {
-      "id": 30,
-      "type": "Generator/Perlin",
+      "id": 12,
+      "type": "Filter/Blur",
       "pos": {
-        "0": 600,
-        "1": -114,
+        "0": 1206,
+        "1": 729,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1000,7 +1392,187 @@ const exampleVorRocks = {
       },
       "size": {
         "0": 210,
-        "1": 268
+        "1": 220
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Blur",
+      "properties": {
+        "amount": 4.980889028597767,
+        "passes": 3.534459784560795
+      }
+    },
+    {
+      "id": 11,
+      "type": "Math/Subtract",
+      "pos": {
+        "0": 2007,
+        "1": 410,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 12
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 65
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            39,
+            55
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Subtract",
+      "properties": {}
+    },
+    {
+      "id": 50,
+      "type": "Math/Invert",
+      "pos": {
+        "0": 2011,
+        "1": 721,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 76
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            77
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Invert",
+      "properties": {}
+    },
+    {
+      "id": 28,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 2776,
+        "1": 736,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 35
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            71
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.6601432919392766,
+        "soft": 0.36027669270833435
+      }
+    },
+    {
+      "id": 47,
+      "type": "Generator/Ridged Noise",
+      "pos": {
+        "0": 2672,
+        "1": -183,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 244
       },
       "flags": {},
       "order": 1,
@@ -1008,28 +1580,27 @@ const exampleVorRocks = {
       "inputs": [],
       "outputs": [
         {
-          "name": "noise",
+          "name": "out",
           "type": "array",
           "links": [
-            56
+            73
           ],
           "slot_index": 0
         }
       ],
-      "title": "Perlin",
+      "title": "Ridged Noise",
       "properties": {
-        "frequency": 11.221610637626238,
-        "octaves": 4.512890459267703,
-        "amplitude": 0.8686659071180493,
-        "offset": 0.9191709576231012
+        "scale": 17.01031222873264,
+        "octaves": 4,
+        "seed": 1
       }
     },
     {
-      "id": 33,
-      "type": "Math/Scale",
+      "id": 48,
+      "type": "Filter/Pixelate",
       "pos": {
-        "0": 885,
-        "1": -101,
+        "0": 2920,
+        "1": -172,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1048,9 +1619,9 @@ const exampleVorRocks = {
       "mode": 0,
       "inputs": [
         {
-          "name": "value",
+          "name": "input",
           "type": "array",
-          "link": 56
+          "link": 73
         }
       ],
       "outputs": [
@@ -1058,64 +1629,22 @@ const exampleVorRocks = {
           "name": "out",
           "type": "array",
           "links": [
-            57
+            74
           ],
           "slot_index": 0
         }
       ],
-      "title": "Scale",
+      "title": "Pixelate",
       "properties": {
-        "amount": 1.2411977132161507
+        "pixelSize": 5.73471765280458
       }
     },
     {
-      "id": 8,
-      "type": "Math/Invert",
+      "id": 49,
+      "type": "Filter/Threshold",
       "pos": {
-        "0": 443,
-        "1": 247,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 164
-      },
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "input",
-          "type": "array",
-          "link": 8
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            9
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Invert",
-      "properties": {}
-    },
-    {
-      "id": 9,
-      "type": "Filter/Blur",
-      "pos": {
-        "0": 616,
-        "1": 246,
+        "0": 3167,
+        "1": -174,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1130,68 +1659,13 @@ const exampleVorRocks = {
         "1": 220
       },
       "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "value",
-          "type": "array",
-          "link": 9
-        }
-      ],
-      "outputs": [
-        {
-          "name": "out",
-          "type": "array",
-          "links": [
-            52
-          ],
-          "slot_index": 0
-        }
-      ],
-      "title": "Blur",
-      "properties": {
-        "amount": 2.9550231210688764,
-        "passes": 3.0141540496730537
-      }
-    },
-    {
-      "id": 32,
-      "type": "Combine/Mask Blend",
-      "pos": {
-        "0": 1218,
-        "1": 128,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0
-      },
-      "size": {
-        "0": 140,
-        "1": 204
-      },
-      "flags": {},
       "order": 5,
       "mode": 0,
       "inputs": [
         {
-          "name": "A",
+          "name": "input",
           "type": "array",
-          "link": 57
-        },
-        {
-          "name": "B",
-          "type": "array",
-          "link": null
-        },
-        {
-          "name": "Mask",
-          "type": "array",
-          "link": 52
+          "link": 74
         }
       ],
       "outputs": [
@@ -1199,20 +1673,23 @@ const exampleVorRocks = {
           "name": "out",
           "type": "array",
           "links": [
-            83
+            75
           ],
           "slot_index": 0
         }
       ],
-      "title": "Mask Blend",
-      "properties": {}
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 1,
+        "soft": 0
+      }
     },
     {
-      "id": 44,
+      "id": 32,
       "type": "Math/Subtract",
       "pos": {
-        "0": 1404,
-        "1": 129,
+        "0": 3498,
+        "1": 161,
         "2": 0,
         "3": 0,
         "4": 0,
@@ -1227,18 +1704,204 @@ const exampleVorRocks = {
         "1": 184
       },
       "flags": {},
-      "order": 6,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
           "name": "A",
           "type": "array",
-          "link": 83
+          "link": 56
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 60
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            46
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Subtract",
+      "properties": {}
+    },
+    {
+      "id": 33,
+      "type": "Combine/Mask Blend",
+      "pos": {
+        "0": 3709,
+        "1": 10,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 204
+      },
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 75
         },
         {
           "name": "B",
           "type": "array",
           "link": null
+        },
+        {
+          "name": "Mask",
+          "type": "array",
+          "link": 46
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            50
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Mask Blend",
+      "properties": {}
+    },
+    {
+      "id": 35,
+      "type": "Math/Saturate",
+      "pos": {
+        "0": 3892,
+        "1": 16,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 50
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            61
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Saturate",
+      "properties": {}
+    },
+    {
+      "id": 27,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 2284.52685546875,
+        "1": 737.0768432617188,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 77
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            34
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.6076585015190984,
+        "soft": 0.1994433593749995
+      }
+    },
+    {
+      "id": 26,
+      "type": "Math/Subtract",
+      "pos": {
+        "0": 4064,
+        "1": 404,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 39
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 61
         }
       ],
       "outputs": [
@@ -1250,54 +1913,243 @@ const exampleVorRocks = {
       ],
       "title": "Subtract",
       "properties": {}
+    },
+    {
+      "id": 37,
+      "type": "Filter/Threshold",
+      "pos": {
+        "0": 2856,
+        "1": 165,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 220
+      },
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 55
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            56
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Threshold / Mask",
+      "properties": {
+        "threshold": 0.6646482789789692,
+        "soft": 0.3488752402983285
+      }
     }
   ],
   "links": [
     [
-      8,
+      4,
+      1,
+      0,
       6,
       0,
+      "array"
+    ],
+    [
       8,
+      7,
+      0,
+      10,
       0,
       "array"
     ],
     [
-      9,
-      8,
+      11,
+      6,
       0,
-      9,
+      7,
       0,
       "array"
     ],
     [
-      52,
-      9,
+      12,
+      6,
       0,
+      11,
+      0,
+      "array"
+    ],
+    [
+      13,
+      10,
+      0,
+      12,
+      0,
+      "array"
+    ],
+    [
+      14,
+      12,
+      0,
+      13,
+      0,
+      "array"
+    ],
+    [
+      34,
+      27,
+      0,
+      29,
+      0,
+      "array"
+    ],
+    [
+      35,
+      29,
+      0,
+      28,
+      0,
+      "array"
+    ],
+    [
+      39,
+      11,
+      0,
+      26,
+      0,
+      "array"
+    ],
+    [
+      46,
       32,
+      0,
+      33,
       2,
       "array"
     ],
     [
+      50,
+      33,
+      0,
+      35,
+      0,
+      "array"
+    ],
+    [
+      55,
+      11,
+      0,
+      37,
+      0,
+      "array"
+    ],
+    [
       56,
-      30,
-      0,
-      33,
-      0,
-      "array"
-    ],
-    [
-      57,
-      33,
+      37,
       0,
       32,
       0,
       "array"
     ],
     [
-      83,
-      32,
+      60,
+      39,
       0,
-      44,
+      32,
+      1,
+      "array"
+    ],
+    [
+      61,
+      35,
+      0,
+      26,
+      1,
+      "array"
+    ],
+    [
+      64,
+      13,
+      0,
+      42,
+      0,
+      "array"
+    ],
+    [
+      65,
+      42,
+      0,
+      11,
+      1,
+      "array"
+    ],
+    [
+      71,
+      28,
+      0,
+      45,
+      0,
+      "array"
+    ],
+    [
+      72,
+      45,
+      0,
+      39,
+      0,
+      "array"
+    ],
+    [
+      73,
+      47,
+      0,
+      48,
+      0,
+      "array"
+    ],
+    [
+      74,
+      48,
+      0,
+      49,
+      0,
+      "array"
+    ],
+    [
+      75,
+      49,
+      0,
+      33,
+      0,
+      "array"
+    ],
+    [
+      76,
+      42,
+      0,
+      50,
+      0,
+      "array"
+    ],
+    [
+      77,
+      50,
+      0,
+      27,
       0,
       "array"
     ]
@@ -1306,7 +2158,7 @@ const exampleVorRocks = {
   "config": {},
   "extra": {},
   "version": 0.4
-};
+}
 
 const exampleIsland = {
   "last_node_id": 13,

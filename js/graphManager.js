@@ -256,9 +256,9 @@ async function initGraphManager(graphCanvasEl)
     if (!hasGraphs())
     {
         // Load example graphs
-        importGraphFromJSON(exampleEye, "Eye", "eye");
-        importGraphFromJSON(exampleVorRocks, "Voronoi Rocks", "rocks");
-        importGraphFromJSON(exampleIsland, "Island", "island", true);
+        importGraphFromJSON(exampleIsland, "Island", "island");
+        importGraphFromJSON(examplePixelRock, "Pixel Art Rocks", "pixelArtRocks");
+        importGraphFromJSON(exampleEye, "Eye", "eye", true);
     }
     else
     {
