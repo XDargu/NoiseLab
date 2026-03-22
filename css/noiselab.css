@@ -49,7 +49,6 @@ body {
 
 /* Right panel (final canvas) */
 #canvas-container {
-  width: 256px;
   position: absolute;
   top: 60px;
   right: 20px;

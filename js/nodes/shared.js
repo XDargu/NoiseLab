@@ -15,10 +15,7 @@ class NoiseNode extends LGraphNode {
         if (isLoadingGraph) return;
 
         this.onExecute();
-        if (this.drawPreviewTexture)
-            this.drawPreviewTexture();
-        else
-            this.drawPreview(this.getOutputData(0))
+        this.drawPreviewTexture();
     }
 
     onPropertyChanged()
@@ -26,37 +23,11 @@ class NoiseNode extends LGraphNode {
         if (isLoadingGraph) return;
 
         this.onExecute();
-        if (this.drawPreviewTexture)
-            this.drawPreviewTexture();
-        else
-            this.drawPreview(this.getOutputData(0))
+        this.drawPreviewTexture();
         renderNode(this)
 
         // Needed to save changes of props
         autoSaveGraph();
-    }
-
-    drawPreview(noiseArray) {
-        if (!noiseArray) return;
-        const w = this.previewCanvas.width;
-        const h = this.previewCanvas.height;
-        const imgData = this.previewCtx.createImageData(w,h);
-        const isTerrainMode = terrainModeCheck.checked;
-        for (let y=0;y<h;y++){
-            for (let x=0;x<w;x++){
-                const nx = Math.floor(x/WIDTH*WIDTH);
-                const ny = Math.floor(y/HEIGHT*HEIGHT);
-                const v = Math.floor(noiseArray[ny*WIDTH+nx]*255);
-                const idx = (y*w+x)*4;
-                const col = isTerrainMode ? heightToRGB(v) : null;
-
-                imgData.data[idx+0] = col?.r || v;
-                imgData.data[idx+1] = col?.g || v;
-                imgData.data[idx+2] = col?.b || v;
-                imgData.data[idx+3] = 255;
-            }
-        }
-        this.previewCtx.putImageData(imgData,0,0);
     }
 
     onDrawBackground(ctx) {

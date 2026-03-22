@@ -1153,7 +1153,7 @@ const examplePixelRock = {
       ],
       "title": "Pixelate",
       "properties": {
-        "pixelSize": 5.73471765280458
+        "pixelSize": 32
       }
     },
     {
@@ -1197,7 +1197,7 @@ const examplePixelRock = {
       ],
       "title": "Pixelate",
       "properties": {
-        "pixelSize": 5.73471765280458
+        "pixelSize": 32
       }
     },
     {
@@ -1242,7 +1242,7 @@ const examplePixelRock = {
       ],
       "title": "Pixelate",
       "properties": {
-        "pixelSize": 5.73471765280458
+        "pixelSize": 32
       }
     },
     {
@@ -1636,7 +1636,7 @@ const examplePixelRock = {
       ],
       "title": "Pixelate",
       "properties": {
-        "pixelSize": 5.73471765280458
+        "pixelSize": 32
       }
     },
     {
@@ -2664,6 +2664,821 @@ const exampleIsland = {
       4,
       0,
       5,
+      0,
+      "array"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+};
+
+const exampleWoodPlank = {
+  "last_node_id": 27,
+  "last_link_id": 32,
+  "nodes": [
+    {
+      "id": 13,
+      "type": "Transform/Warp",
+      "pos": {
+        "0": 836,
+        "1": 771,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 3
+        },
+        {
+          "name": "warp",
+          "type": "array",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Warp",
+      "properties": {
+        "intensity": 27.03618898741916
+      }
+    },
+    {
+      "id": 12,
+      "type": "Generator/Perlin",
+      "pos": {
+        "0": 581,
+        "1": 775,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            3,
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Perlin",
+      "properties": {
+        "frequency": 13.217531564229805,
+        "octaves": 1.175673640137713,
+        "amplitude": 1,
+        "offset": 0,
+        "seed": 1
+      }
+    },
+    {
+      "id": 15,
+      "type": "Generator/DirectionalNoise",
+      "pos": {
+        "0": 727.2774047851562,
+        "1": -292.4010314941406,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "DirectionalNoise",
+      "properties": {
+        "frequency": 5,
+        "stretch": 24.158060747386052,
+        "amplitude": 0.9359435881142859,
+        "angle": 90.97466284381426,
+        "seed": 253.45468939158457
+      }
+    },
+    {
+      "id": 16,
+      "type": "Transform/Warp",
+      "pos": {
+        "0": 1101,
+        "1": -27,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 6
+        },
+        {
+          "name": "warp",
+          "type": "array",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            31
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Warp",
+      "properties": {
+        "intensity": 21.89274058115043
+      }
+    },
+    {
+      "id": 23,
+      "type": "Generator/Stripes",
+      "pos": {
+        "0": 1284,
+        "1": -799,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 268
+      },
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            20
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Stripes",
+      "properties": {
+        "frequency": 9.120041128187692,
+        "width": 0.9199560852050777,
+        "softness": 0.4397320929607771,
+        "vertical": false
+      }
+    },
+    {
+      "id": 24,
+      "type": "Transform/Warp",
+      "pos": {
+        "0": 1683,
+        "1": -597,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 20
+        },
+        {
+          "name": "warp",
+          "type": "array",
+          "link": 21
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            24
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Warp",
+      "properties": {
+        "intensity": 44.648515771900875
+      }
+    },
+    {
+      "id": 27,
+      "type": "Math/Normalize",
+      "pos": {
+        "0": 1945,
+        "1": -596,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            26
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Normalize",
+      "properties": {}
+    },
+    {
+      "id": 17,
+      "type": "Math/Normalize",
+      "pos": {
+        "0": 2635,
+        "1": 4,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 164
+      },
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "array",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Normalize",
+      "properties": {}
+    },
+    {
+      "id": 25,
+      "type": "Generator/Perlin",
+      "pos": {
+        "0": 1285,
+        "1": -477,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            21
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Perlin",
+      "properties": {
+        "frequency": 17.57773939680894,
+        "octaves": 2.4368399527339495,
+        "amplitude": 4.337894641601647,
+        "offset": 0,
+        "seed": 1
+      }
+    },
+    {
+      "id": 26,
+      "type": "Transform/Warp",
+      "pos": {
+        "0": 2267,
+        "1": -204,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 31
+        },
+        {
+          "name": "warp",
+          "type": "array",
+          "link": 26
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            32
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Warp",
+      "properties": {
+        "intensity": 21.37404650643172
+      }
+    },
+    {
+      "id": 14,
+      "type": "Generator/Perlin",
+      "pos": {
+        "0": 724,
+        "1": 44,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 292
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "noise",
+          "type": "array",
+          "links": [
+            7
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Perlin",
+      "properties": {
+        "frequency": 9.229122277462112,
+        "octaves": 2.602120211379937,
+        "amplitude": 1.1527245326075217,
+        "offset": 0,
+        "seed": 1
+      }
+    },
+    {
+      "id": 11,
+      "type": "Transform/Warp",
+      "pos": {
+        "0": 1104,
+        "1": 451,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "array",
+          "link": 2
+        },
+        {
+          "name": "warp",
+          "type": "array",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            17,
+            19
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Warp",
+      "properties": {
+        "intensity": 2.7568775282926103
+      }
+    },
+    {
+      "id": 21,
+      "type": "Combine/Mix",
+      "pos": {
+        "0": 2917,
+        "1": 146,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 216
+      },
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 16
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            18
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Mix / Lerp",
+      "properties": {
+        "t": 0.5062448374858048
+      }
+    },
+    {
+      "id": 10,
+      "type": "Generator/Bricks",
+      "pos": {
+        "0": 620,
+        "1": 457,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 210,
+        "1": 268
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "title": "Bricks",
+      "properties": {
+        "bricksX": 1,
+        "bricksY": 10.380999888494319,
+        "mortar": 2.6969534808446145,
+        "bevel": 0
+      }
+    },
+    {
+      "id": 22,
+      "type": "Math/Min",
+      "pos": {
+        "0": 3276,
+        "1": 397,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "size": {
+        "0": 140,
+        "1": 184
+      },
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "A",
+          "type": "array",
+          "link": 18
+        },
+        {
+          "name": "B",
+          "type": "array",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "out",
+          "type": "array",
+          "links": null
+        }
+      ],
+      "title": "Min",
+      "properties": {}
+    }
+  ],
+  "links": [
+    [
+      2,
+      10,
+      0,
+      11,
+      0,
+      "array"
+    ],
+    [
+      3,
+      12,
+      0,
+      13,
+      0,
+      "array"
+    ],
+    [
+      4,
+      12,
+      0,
+      13,
+      1,
+      "array"
+    ],
+    [
+      5,
+      13,
+      0,
+      11,
+      1,
+      "array"
+    ],
+    [
+      6,
+      15,
+      0,
+      16,
+      0,
+      "array"
+    ],
+    [
+      7,
+      14,
+      0,
+      16,
+      1,
+      "array"
+    ],
+    [
+      16,
+      17,
+      0,
+      21,
+      0,
+      "array"
+    ],
+    [
+      17,
+      11,
+      0,
+      21,
+      1,
+      "array"
+    ],
+    [
+      18,
+      21,
+      0,
+      22,
+      0,
+      "array"
+    ],
+    [
+      19,
+      11,
+      0,
+      22,
+      1,
+      "array"
+    ],
+    [
+      20,
+      23,
+      0,
+      24,
+      0,
+      "array"
+    ],
+    [
+      21,
+      25,
+      0,
+      24,
+      1,
+      "array"
+    ],
+    [
+      24,
+      24,
+      0,
+      27,
+      0,
+      "array"
+    ],
+    [
+      26,
+      27,
+      0,
+      26,
+      1,
+      "array"
+    ],
+    [
+      31,
+      16,
+      0,
+      26,
+      0,
+      "array"
+    ],
+    [
+      32,
+      26,
+      0,
+      17,
       0,
       "array"
     ]

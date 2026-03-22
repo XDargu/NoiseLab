@@ -468,6 +468,102 @@ class HexGridNode extends GPUNodeBase {
 
 LiteGraph.registerNodeType("Generator/Hex Grid", HexGridNode);
 
+class BrickNode extends GPUNodeBase {
+    constructor() {
+        super();
+        this.addOutput("out", "array");
+
+        this.properties = {
+            bricksX: 8,
+            bricksY: 4,
+            mortar: 4,   // in pixels
+            bevel: 6     // in pixels
+        };
+
+        this.addWidget("slider", "Bricks X", this.properties.bricksX, { min: 1, max: 50, step: 1, precision: 0, property: "bricksX" });
+        this.addWidget("slider", "Bricks Y", this.properties.bricksY, { min: 1, max: 50, step: 1, precision: 0, property: "bricksY" });
+        this.addWidget("slider", "Mortar (px)", this.properties.mortar, { min: 0, max: 20, property: "mortar" });
+        this.addWidget("slider", "Bevel (px)", this.properties.bevel, { min: 0, max: 50, property: "bevel" });
+
+        this.title = "Bricks";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    onExecute() {
+        const fs = `#version 300 es
+        precision highp float;
+
+        uniform float bricksX;
+        uniform float bricksY;
+        uniform float mortar; // pixels
+        uniform float bevel;  // pixels
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        void main() {
+            vec2 resolution = vec2(${WIDTH}.0, ${HEIGHT}.0);
+
+            vec2 uv = vUv * vec2(bricksX, bricksY);
+
+            float row = floor(uv.y);
+
+            uv.x += mod(row, 2.0) * 0.5;
+
+            vec2 brick = fract(uv);
+
+            vec2 tileSizePx = resolution / vec2(bricksX, bricksY);
+
+            vec2 mortarTile = mortar / tileSizePx;
+            vec2 bevelTile  = bevel  / tileSizePx;
+
+            float mortarMask =
+                step(brick.x, mortarTile.x) +
+                step(brick.y, mortarTile.y) +
+                step(1.0 - brick.x, mortarTile.x) +
+                step(1.0 - brick.y, mortarTile.y);
+
+            mortarMask = clamp(mortarMask, 0.0, 1.0);
+
+            float distToEdge = min(
+                min(brick.x, 1.0 - brick.x),
+                min(brick.y, 1.0 - brick.y)
+            );
+
+            float bevelSize = min(bevelTile.x, bevelTile.y);
+
+            // Prevent bevel from exceeding brick
+            bevelSize = min(bevelSize, 0.5);
+
+            float bevelMask = smoothstep(0.0, bevelSize, distToEdge);
+
+            // Optional: sharper bevel (comment out if you want softer)
+            bevelMask = pow(bevelMask, 1.5);
+
+            float brickVal = (1.0 - mortarMask) * bevelMask;
+
+            fragColor = vec4(vec3(brickVal), 1.0);
+        }`;
+
+        this.runShader(
+            "bricks",
+            fs,
+            0,
+            {
+                bricksX: Math.round(this.properties.bricksX),
+                bricksY: Math.round(this.properties.bricksY),
+                mortar: this.properties.mortar,
+                bevel: this.properties.bevel
+            }
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
+    }
+}
+
+LiteGraph.registerNodeType("Generator/Bricks", BrickNode);
+
 class TruchetNode extends GPUNodeBase {
     constructor() {
         super();
