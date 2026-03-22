@@ -303,7 +303,7 @@ class DilateNode extends GPUNodeBase {
         this.properties = { amount: 0.01, passes: 1 };
         this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, step: 1, property: "amount" });
         this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 4, step: 1, property: "passes" });
-        this.title = "Dilate (Fast)";
+        this.title = "Dilate";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
@@ -406,7 +406,7 @@ class ErodeNode extends GPUNodeBase {
         this.properties = { amount: 0.01, passes: 1 };
         this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, step: 1, property: "amount" });
         this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 4, step: 1, property: "passes" });
-        this.title = "Erode (Fast)";
+        this.title = "Erode";
         this.size[1] += PREVIEW_H + PREVIEW_PADDING;
     }
 
