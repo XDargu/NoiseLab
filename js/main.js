@@ -15,7 +15,14 @@ GPU.init(WIDTH, HEIGHT);
 let activeNode = null;
 
 const terrainModeCheck = document.getElementById("terrain-mode")
-terrainModeCheck.onchange = () => { renderNode(graph.activeNode); }
+terrainModeCheck.checked = localStorage.getItem("noiseLabTerrainMode") == "true";
+
+terrainModeCheck.onchange = () => { 
+
+    localStorage.setItem("noiseLabTerrainMode", terrainModeCheck.checked);
+    renderNode(graph.activeNode);
+    graphCanvas.draw(true)
+}
 
 // --- Graph setup ---
 const graphCanvasEl = document.getElementById("graph");
@@ -36,7 +43,6 @@ resizeGraph();
 
 // --- Click node to preview full canvas ---
 function renderNode(node, select = true){
-    if (!node) return;
     
     // execute all nodes
     graph._nodes_in_order.forEach(n => { if (n.onExecute) n.onExecute() });
@@ -58,3 +64,19 @@ graphCanvas.onNodeSelected = node=>{
 };
 
 initGraphManager(graphCanvasEl)
+
+// Welcome modal
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("welcomeModal");
+  const closeBtn = document.getElementById("closeWelcomeBtn");
+
+  // Show modal only if user hasn't visited before
+  if (!localStorage.getItem("noiseLabVisited")) {
+    modal.classList.add("show");
+  }
+
+  closeBtn.addEventListener("click", () => {
+    modal.classList.remove("show");
+    localStorage.setItem("noiseLabVisited", "true");
+  });
+});

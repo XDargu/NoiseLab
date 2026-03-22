@@ -48,6 +48,25 @@
 <!-- Wrap everything under a main container -->
 <main id="main-container" style="display:flex; flex:1; height:100vh; overflow:hidden;">
 
+    <!-- Welcome Modal -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content">
+            <h2>Welcome to NoiseLab!</h2>
+            <p>NoiseLab is a free online graph-based noise editor. Here's how to get started:</p>
+            <ul>
+                <li>Use the left panel to create or select your graphs.</li>
+                <li>Add nodes to your graph and connect them to generate procedural noise and textures. Right-click or double-click to create new nodes.</li>
+                <li>Tweak node values to experiment with your creation in real time.</li>
+                <li>Enable <strong>Terrain mode</strong> to preview heightmaps.</li>
+            </ul>
+            <p>Everything you create is automatically stored locally in your browser. You can also export your graphs anytime to save them permanently.</p>
+            <p>Have fun exploring and creating!</p>
+            <div style="text-align: center;">
+                <button id="closeWelcomeBtn">Got it!</button>
+            </div>
+        </div>
+    </div>
+
   <!-- Graph library sidebar -->
   <aside id="graph-sidebar">
     <div id="sidetitle">
