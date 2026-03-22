@@ -294,3 +294,207 @@ class ThresholdNode extends GPUNodeBase {
 }
 
 LiteGraph.registerNodeType("Filter/Threshold", ThresholdNode);
+
+class DilateNode extends GPUNodeBase {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { amount: 0.01, passes: 1 };
+        this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, step: 1, property: "amount" });
+        this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 4, step: 1, property: "passes" });
+        this.title = "Dilate (Fast)";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    runPass(direction, amount) {
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform vec2 direction;
+        uniform float amount;
+
+        void main() {
+            vec2 texSize = vec2(textureSize(tex0, 0));
+            float radius = amount * max(texSize.x, texSize.y);
+            vec2 texel = 1.0 / texSize;
+
+            float maxVal = 0.0;
+
+            for(int i = -20; i <= 20; i++) {
+                float fi = float(i);
+                if(abs(fi) > radius) continue;
+
+                float v = texture(tex0, vUv + direction * texel * fi).r;
+                maxVal = max(maxVal, v);
+            }
+
+            fragColor = vec4(vec3(maxVal), 1.0);
+        }`;
+
+        this.runShader(
+            "dilate_pass",
+            frag,
+            1,
+            { direction, amount },
+            this.pingWrite(),
+            [this.pingRead()]
+        );
+
+        this.swapPing();
+    }
+
+    onExecute() {
+        this.updateInputTexture(0, this.getInputData(0));
+
+        const amount = this.properties.amount * 0.001;
+        const passes = Math.floor(this.properties.passes);
+
+        // Copy input
+        this.runShader(
+            "copy",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main() { fragColor = texture(tex0, vUv); }`,
+            1,
+            {},
+            this._pingFramebuffers[0],
+            [this._inputTextures[0]]
+        );
+
+        this._pingCurrent = 0;
+
+        for(let i = 0; i < passes; i++) {
+            this.runPass([1, 0], amount);
+            this.runPass([0, 1], amount);
+        }
+
+        // Output
+        this.runShader(
+            "copy_out",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main(){ fragColor = texture(tex0, vUv); }`,
+            1,
+            {},
+            this.framebuffer,
+            [this.pingRead()]
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
+    }
+}
+
+LiteGraph.registerNodeType("Filter/Dilate", DilateNode);
+
+class ErodeNode extends GPUNodeBase {
+    constructor() {
+        super();
+        this.addInput("value", "array");
+        this.addOutput("out", "array");
+        this.properties = { amount: 0.01, passes: 1 };
+        this.addWidget("slider", "Amount", this.properties.amount, { min: 1, max: 10, step: 1, property: "amount" });
+        this.addWidget("slider", "Passes", this.properties.passes, { min: 1, max: 4, step: 1, property: "passes" });
+        this.title = "Erode (Fast)";
+        this.size[1] += PREVIEW_H + PREVIEW_PADDING;
+    }
+
+    runPass(direction, amount) {
+        const frag = `#version 300 es
+        precision highp float;
+
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D tex0;
+        uniform vec2 direction;
+        uniform float amount;
+
+        void main() {
+            vec2 texSize = vec2(textureSize(tex0, 0));
+            float radius = amount * max(texSize.x, texSize.y);
+            vec2 texel = 1.0 / texSize;
+
+            float minVal = 1.0;
+
+            for(int i = -20; i <= 20; i++) {
+                float fi = float(i);
+                if(abs(fi) > radius) continue;
+
+                float v = texture(tex0, vUv + direction * texel * fi).r;
+                minVal = min(minVal, v);
+            }
+
+            fragColor = vec4(vec3(minVal), 1.0);
+        }`;
+
+        this.runShader(
+            "erode_pass",
+            frag,
+            1,
+            { direction, amount },
+            this.pingWrite(),
+            [this.pingRead()]
+        );
+
+        this.swapPing();
+    }
+
+    onExecute() {
+        this.updateInputTexture(0, this.getInputData(0));
+
+        const amount = this.properties.amount * 0.001;
+        const passes = Math.floor(this.properties.passes);
+
+        this.runShader(
+            "copy",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main() { fragColor = texture(tex0, vUv); }`,
+            1,
+            {},
+            this._pingFramebuffers[0],
+            [this._inputTextures[0]]
+        );
+
+        this._pingCurrent = 0;
+
+        for(let i = 0; i < passes; i++) {
+            this.runPass([1, 0], amount);
+            this.runPass([0, 1], amount);
+        }
+
+        this.runShader(
+            "copy_out",
+            `#version 300 es
+            precision highp float;
+            in vec2 vUv;
+            out vec4 fragColor;
+            uniform sampler2D tex0;
+            void main(){ fragColor = texture(tex0, vUv); }`,
+            1,
+            {},
+            this.framebuffer,
+            [this.pingRead()]
+        );
+
+        this.setOutputTexture();
+        this.drawPreviewTexture();
+    }
+}
+
+LiteGraph.registerNodeType("Filter/Erode", ErodeNode);
