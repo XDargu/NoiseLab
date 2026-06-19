@@ -13,14 +13,31 @@ noiseCanvas.onclick = () => {
     }
     else
     {
-        noiseCanvas.style.width = "calc(100vh - 70px)";
-        noiseCanvas.style.height = "calc(100vh - 70px)";
+        noiseCanvas.style.width = "calc(100vh - 120px)";
+        noiseCanvas.style.height = "calc(100vh - 120px)";
     }
 
     maximized = !maximized;
 }
 
 noiseCanvas.scale = 4;
+
+const downloadImageBtn = document.getElementById("downloadImageBtn");
+downloadImageBtn.onclick = () => {
+    const graphName = document.getElementById("currentGraphName").innerText.trim() || "noiselab";
+    const safeName = graphName.replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "-");
+
+    noiseCanvas.toBlob(blob => {
+        if (!blob) return;
+
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = `${safeName}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, "image/png");
+};
 
 const PREVIEW_W = 128;
 const PREVIEW_H = 128;

@@ -52,12 +52,10 @@ body {
   position: absolute;
   top: 60px;
   right: 20px;
-  background: #222;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-end;
   flex-shrink: 0;
-  border-left: 2px solid #444;
 }
 
 /* LiteGraph canvas fills left panel */
@@ -70,6 +68,23 @@ body {
 /* Final noise canvas */
 #noiseCanvas {
   border: 1px solid #555;
+}
+
+#downloadImageBtn {
+  background: rgba(51, 51, 51, 0.92);
+  color: #fff;
+  border: 1px solid #555;
+  padding: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+#downloadImageBtn:hover {
+  background: rgba(68, 68, 68, 0.96);
 }
 
 /* Checkbox*/
