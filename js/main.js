@@ -5,20 +5,31 @@ let WIDTH = 1024;
 let HEIGHT = 1024;
 
 let maximized = false;
-noiseCanvas.onclick = () => {
-    if (maximized)
-    {
-        noiseCanvas.style.width = "256px";
-        noiseCanvas.style.height = "256px";
-    }
-    else
-    {
-        noiseCanvas.style.width = "calc(100vh - 120px)";
-        noiseCanvas.style.height = "calc(100vh - 120px)";
+const mobileViewport = window.matchMedia("(max-width: 760px)");
+
+function updateNoiseCanvasSize() {
+    noiseCanvas.classList.toggle("maximized", maximized);
+
+    if (mobileViewport.matches) {
+        noiseCanvas.style.width = maximized ? "min(calc(100vw - 24px), calc(100dvh - 185px))" : "min(38vw, 150px)";
+        noiseCanvas.style.height = noiseCanvas.style.width;
+        return;
     }
 
-    maximized = !maximized;
+    noiseCanvas.style.width = maximized ? "calc(100vh - 120px)" : "256px";
+    noiseCanvas.style.height = noiseCanvas.style.width;
 }
+
+noiseCanvas.onclick = () => {
+    maximized = !maximized;
+    updateNoiseCanvasSize();
+}
+if (mobileViewport.addEventListener)
+    mobileViewport.addEventListener("change", updateNoiseCanvasSize);
+else
+    mobileViewport.addListener(updateNoiseCanvasSize);
+window.addEventListener("resize", updateNoiseCanvasSize);
+updateNoiseCanvasSize();
 
 noiseCanvas.scale = 4;
 
@@ -65,6 +76,112 @@ const graph = new LGraph();
 const graphCanvas = new LGraphCanvas(graphCanvasEl, graph);
 graph.start();
 
+function enableTouchGraphControls(canvas) {
+    let activeTouchId = null;
+    let activeMode = null;
+    let lastTouchPosition = null;
+
+    function touchToGraphPosition(touch) {
+        const rect = canvas.getBoundingClientRect();
+        return [
+            (touch.clientX - rect.left) / graphCanvas.ds.scale - graphCanvas.ds.offset[0],
+            (touch.clientY - rect.top) / graphCanvas.ds.scale - graphCanvas.ds.offset[1]
+        ];
+    }
+
+    function getTouch(touches) {
+        for (let i = 0; i < touches.length; i++) {
+            if (touches[i].identifier == activeTouchId)
+                return touches[i];
+        }
+
+        return null;
+    }
+
+    function dispatchMouseFromTouch(type, touch, target) {
+        const event = new MouseEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            screenX: touch.screenX,
+            screenY: touch.screenY,
+            button: 0,
+            buttons: type == "mouseup" ? 0 : 1
+        });
+        Object.defineProperty(event, "which", { value: type == "mouseup" ? 0 : 1 });
+
+        target.dispatchEvent(event);
+    }
+
+    canvas.addEventListener("touchstart", e => {
+        if (activeTouchId !== null || e.touches.length != 1)
+            return;
+
+        const touch = e.changedTouches[0];
+        activeTouchId = touch.identifier;
+        lastTouchPosition = [touch.clientX, touch.clientY];
+        e.preventDefault();
+
+        const graphPosition = touchToGraphPosition(touch);
+        const node = graph.getNodeOnPos(graphPosition[0], graphPosition[1], graphCanvas.visible_nodes, 5);
+        activeMode = node ? "litegraph" : "pan";
+
+        if (activeMode == "litegraph")
+            dispatchMouseFromTouch("mousedown", touch, canvas);
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", e => {
+        if (activeTouchId === null)
+            return;
+
+        const touch = getTouch(e.changedTouches) || getTouch(e.touches);
+        if (!touch)
+            return;
+
+        e.preventDefault();
+
+        if (activeMode == "pan") {
+            const deltaX = touch.clientX - lastTouchPosition[0];
+            const deltaY = touch.clientY - lastTouchPosition[1];
+            graphCanvas.ds.offset[0] += deltaX / graphCanvas.ds.scale;
+            graphCanvas.ds.offset[1] += deltaY / graphCanvas.ds.scale;
+            graphCanvas.dirty_canvas = true;
+            graphCanvas.dirty_bgcanvas = true;
+            graphCanvas.draw(true, true);
+        }
+        else {
+            dispatchMouseFromTouch("mousemove", touch, document);
+        }
+
+        lastTouchPosition = [touch.clientX, touch.clientY];
+    }, { passive: false });
+
+    function finishTouch(e) {
+        if (activeTouchId === null)
+            return;
+
+        const touch = getTouch(e.changedTouches);
+        if (!touch)
+            return;
+
+        e.preventDefault();
+
+        if (activeMode == "litegraph")
+            dispatchMouseFromTouch("mouseup", touch, document);
+
+        activeTouchId = null;
+        activeMode = null;
+        lastTouchPosition = null;
+    }
+
+    canvas.addEventListener("touchend", finishTouch, { passive: false });
+    canvas.addEventListener("touchcancel", finishTouch, { passive: false });
+}
+
+enableTouchGraphControls(graphCanvasEl);
+
 // --- Responsive resizing ---
 function resizeGraph() {
     const rect = graphCanvasEl.parentElement.getBoundingClientRect();
@@ -74,6 +191,25 @@ function resizeGraph() {
 }
 window.addEventListener("resize", resizeGraph);
 resizeGraph();
+
+const mobileSidebarBtn = document.getElementById("mobileSidebarBtn");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const yourGraphsList = document.getElementById("yourGraphsList");
+
+function setMobileSidebarOpen(open) {
+    document.body.classList.toggle("sidebar-open", open);
+    mobileSidebarBtn.setAttribute("aria-label", open ? "Close graphs" : "Open graphs");
+    mobileSidebarBtn.setAttribute("aria-expanded", open ? "true" : "false");
+
+    setTimeout(resizeGraph, 200);
+}
+
+mobileSidebarBtn.onclick = () => setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+sidebarBackdrop.onclick = () => setMobileSidebarOpen(false);
+yourGraphsList.addEventListener("click", e => {
+    if (e.target.closest(".graph-actions")) return;
+    if (e.target.closest("li")) setMobileSidebarOpen(false);
+});
 
 
 // --- Click node to preview full canvas ---

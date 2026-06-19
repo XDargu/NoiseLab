@@ -2,8 +2,11 @@ body {
   margin: 0;
   font-family: sans-serif;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background: #111;
 }
 
 /* Top title bar */
@@ -20,6 +23,10 @@ body {
 }
 #titlebar span {
   margin-left: 10px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 #titlebar img,
 #sidetitle img {
@@ -36,6 +43,7 @@ body {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
 /* Left panel (graph) */
@@ -63,6 +71,8 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+  user-select: none;
 }
 
 /* Final noise canvas */
@@ -85,6 +95,14 @@ body {
 
 #downloadImageBtn:hover {
   background: rgba(68, 68, 68, 0.96);
+}
+
+#titlebar #mobileSidebarBtn {
+  display: none;
+}
+
+#sidebarBackdrop {
+  display: none;
 }
 
 /* Checkbox*/
@@ -204,6 +222,7 @@ body {
 }
 
 #graph-sidebar li {
+  min-height: 30px;
   padding: 5px 10px;
   display: flex;
   justify-content: space-between;
@@ -244,6 +263,9 @@ body {
   margin: 0;
   padding: 0;
   margin-left: 2px;
+  min-width: 28px;
+  min-height: 28px;
+  justify-content: center;
 }
 
 #graph-sidebar .graph-actions button .fa-trash {
@@ -403,4 +425,164 @@ body {
 
 .modal-content ul li {
     margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  #main-container {
+    height: 100dvh !important;
+    min-height: 0;
+    position: relative;
+  }
+
+  #editor-area {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #titlebar {
+    height: auto;
+    min-height: 50px;
+    padding: 6px 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 1em;
+  }
+
+  #titlebar span {
+    flex: 1 1 calc(100% - 52px);
+    margin-left: 0;
+    font-size: 1.05em;
+  }
+
+  #titlebar #mobileSidebarBtn {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    flex: 0 0 40px;
+    padding: 0;
+  }
+
+  #exportBtn {
+    margin-left: 0;
+  }
+
+  #titlebar button {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+
+  .checkbox-container {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    padding-left: 34px;
+    font-size: 0.9em;
+  }
+
+  .checkmark {
+    top: 9px;
+    left: 6px;
+  }
+
+  #graph-sidebar {
+    position: fixed;
+    z-index: 1001;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(82vw, 300px);
+    max-width: 300px;
+    padding: 10px;
+    transform: translateX(-105%);
+    transition: transform 0.18s ease;
+    border-right: 1px solid #555;
+    box-shadow: 8px 0 22px rgba(0,0,0,0.45);
+  }
+
+  body.sidebar-open #graph-sidebar {
+    transform: translateX(0);
+  }
+
+  #sidebarBackdrop {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: block;
+    background: rgba(0,0,0,0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+
+  body.sidebar-open #sidebarBackdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #sidetitle {
+    margin: -10px -10px 10px;
+  }
+
+  #graph-sidebar button,
+  #graph-sidebar input,
+  #graph-sidebar li {
+    min-height: 40px;
+    font-size: 15px;
+  }
+
+  #canvas-container {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    z-index: 20;
+    max-width: calc(100vw - 24px);
+  }
+
+  #noiseCanvas {
+    width: min(38vw, 150px) !important;
+    height: min(38vw, 150px) !important;
+  }
+
+  #noiseCanvas.maximized {
+    width: min(calc(100vw - 24px), calc(100dvh - 185px)) !important;
+    height: min(calc(100vw - 24px), calc(100dvh - 185px)) !important;
+  }
+
+  #downloadImageBtn {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 12px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .modal-content {
+    box-sizing: border-box;
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 36px);
+    max-height: calc(100dvh - 36px);
+    overflow: auto;
+    padding: 22px;
+  }
+}
+
+@media (max-width: 430px) {
+  #titlebar {
+    align-content: flex-start;
+  }
+
+  #titlebar button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  #titlebar #mobileSidebarBtn {
+    flex: 0 0 40px;
+  }
+
+  .checkbox-container {
+    flex: 1 1 auto;
+  }
 }
