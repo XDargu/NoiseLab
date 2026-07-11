@@ -76,6 +76,12 @@ const graph = new LGraph();
 const graphCanvas = new LGraphCanvas(graphCanvasEl, graph);
 graph.start();
 
+// Background double-click still opens LiteGraph's add-node search, but
+// double-clicking an existing node should not open the default settings panel.
+// That panel is sized for LiteGraph's full editor shell and can visually
+// compress the graph area in this embedded layout until the page is reloaded.
+graphCanvas.onShowNodePanel = () => {};
+
 function enableTouchGraphControls(canvas) {
     let activeTouchId = null;
     let activeMode = null;
@@ -184,9 +190,12 @@ enableTouchGraphControls(graphCanvasEl);
 
 // --- Responsive resizing ---
 function resizeGraph() {
-    const rect = graphCanvasEl.parentElement.getBoundingClientRect();
-    graphCanvasEl.width = rect.width;
-    graphCanvasEl.height = rect.height;
+    const container = graphCanvasEl.parentElement;
+    const width = Math.max(1, Math.floor(container.clientWidth));
+    const height = Math.max(1, Math.floor(container.clientHeight));
+
+    graphCanvasEl.width = width;
+    graphCanvasEl.height = height;
     graphCanvas.resize();
 }
 window.addEventListener("resize", resizeGraph);
