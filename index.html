@@ -80,6 +80,7 @@
     <div id="yourGraphsSection">
       <ul id="yourGraphsList"></ul>
     </div>
+    <div id="storageUsage" title="Browser storage used by this site">Storage: calculating...</div>
 
     <div id="noiseLabInfo">
         <div>NoiseLab is a free online graph-based noise and image editing tool.</div>
@@ -115,7 +116,7 @@
   </section>
 </main>
 
-<input type="file" id="fileInput" accept=".json" style="display:none">
+<input type="file" id="fileInput" accept=".json,.noiselab" style="display:none">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
@@ -126,12 +127,14 @@
 <script src="js/external/random.js"></script>
 <script src="js/external/litegraph.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/nodes/shared.js"></script>
 <script src="js/nodes/shader.js"></script>
 <script src="js/nodes/combine.js"></script>
 <script src="js/nodes/expression.js"></script>
 <script src="js/nodes/filter.js"></script>
 <script src="js/nodes/generator.js"></script>
+<script src="js/nodes/image.js"></script>
 <script src="js/nodes/math.js"></script>
 <script src="js/nodes/transform.js"></script>
 <script src="js/nodes/utility.js"></script>
