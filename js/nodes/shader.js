@@ -245,30 +245,29 @@ class GPUNodeBase extends NoiseNode {
 
         uniform sampler2D tex0;
         uniform int uMode;
+        uniform int uTerrainStopCount;
+        uniform float uTerrainValues[16];
+        uniform vec3 uTerrainColors[16];
 
         in vec2 vUv;
         out vec4 fragColor;
 
         vec3 terrainColor(float h) {
-            if (h < 0.1) {
-                float t = ((h - 0.0) / 0.1);
-                return mix(vec3(0.0,0.0,200.0/255.0), vec3(0.0,100.0/255.0,1.0), t);
-            } else if (h < 0.2) {
-                float t = (h - 0.1) / 0.1;
-                return mix(vec3(0.0,100.0/255.0,1.0), vec3(238.0/255.0,214.0/255.0,175.0/255.0), t);
-            } else if (h < 0.4) {
-                float t = (h - 0.2) / 0.2;
-                return mix(vec3(238.0/255.0,214.0/255.0,175.0/255.0), vec3(34.0/255.0,139.0/255.0,34.0/255.0), t);
-            } else if (h < 0.6) {
-                float t = (h - 0.4) / 0.2;
-                return mix(vec3(34.0/255.0,139.0/255.0,34.0/255.0), vec3(0.0,100.0/255.0,0.0), t);
-            } else if (h < 0.8) {
-                float t = (h - 0.6) / 0.2;
-                return mix(vec3(0.0,100.0/255.0,0.0), vec3(139.0/255.0,69.0/255.0,19.0/255.0), t);
-            } else {
-                float t = (h - 0.8) / 0.7;
-                return mix(vec3(139.0/255.0,69.0/255.0,19.0/255.0), vec3(1.0), t);
+            if (h <= uTerrainValues[0])
+                return uTerrainColors[0];
+
+            for (int i = 1; i < 16; i++) {
+                if (i >= uTerrainStopCount)
+                    break;
+
+                if (h <= uTerrainValues[i]) {
+                    float range = max(uTerrainValues[i] - uTerrainValues[i - 1], 0.00001);
+                    float t = clamp((h - uTerrainValues[i - 1]) / range, 0.0, 1.0);
+                    return mix(uTerrainColors[i - 1], uTerrainColors[i], t);
+                }
             }
+
+            return uTerrainColors[uTerrainStopCount - 1];
         }
 
         void main(){
@@ -285,12 +284,15 @@ class GPUNodeBase extends NoiseNode {
 
         gl.useProgram(program);
 
-        const isTerrainMode = terrainModeCheck.checked;
+        const terrain = getTerrainShaderSettings();
 
         gl.uniform1i(
             gl.getUniformLocation(program, "uMode"),
-            isTerrainMode ? 1 : 0
+            terrain.enabled ? 1 : 0
         );
+        gl.uniform1i(gl.getUniformLocation(program, "uTerrainStopCount"), terrain.count);
+        gl.uniform1fv(gl.getUniformLocation(program, "uTerrainValues[0]"), terrain.values);
+        gl.uniform3fv(gl.getUniformLocation(program, "uTerrainColors[0]"), terrain.colors);
 
         const posLoc = gl.getAttribLocation(program, "aPos");
         gl.enableVertexAttribArray(posLoc);

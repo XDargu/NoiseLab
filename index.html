@@ -98,10 +98,35 @@
       <button id="exportBtn"><i class="fas fa-file-export"></i> Export</button>
       <button id="importBtn"><i class="fas fa-file-import"></i> Import</button>
       
-      <label class="checkbox-container">Terrain mode
-        <input type="checkbox" checked="checked" id="terrain-mode">
-        <span class="checkmark"></span>
-      </label>
+      <div id="terrainControls">
+        <label class="checkbox-container">Terrain mode
+          <input type="checkbox" id="terrain-mode">
+          <span class="checkmark"></span>
+        </label>
+        <button id="terrainPaletteBtn" type="button" title="Edit terrain colors" aria-label="Edit terrain colors" aria-expanded="false" aria-controls="terrainEditor">
+          <i class="fas fa-palette"></i><span>Colors</span>
+        </button>
+
+        <div id="terrainEditor" role="dialog" aria-label="Terrain color editor" hidden>
+          <div class="terrain-editor-header">
+            <div>
+              <strong>Terrain colors</strong>
+              <small>Map height values to colors</small>
+            </div>
+            <button id="closeTerrainEditorBtn" type="button" title="Close" aria-label="Close terrain color editor"><i class="fas fa-xmark"></i></button>
+          </div>
+
+          <div id="terrainGradientPreview" aria-label="Terrain color gradient preview"></div>
+          <div class="terrain-gradient-scale"><span>0.00</span><span>Height</span><span>1.50</span></div>
+          <div id="terrainStops"></div>
+
+          <div class="terrain-editor-actions">
+            <button id="addTerrainStopBtn" type="button"><i class="fas fa-plus"></i> Add color</button>
+            <button id="resetTerrainStopsBtn" type="button">Reset default</button>
+          </div>
+          <p class="terrain-editor-hint">Changes are saved automatically, color configuration applies per-graph</p>
+        </div>
+      </div>
     </div>
 
     <div id="content" style="flex:1; display:flex; overflow:hidden;">
@@ -128,6 +153,7 @@
 <script src="js/external/litegraph.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/terrain.js"></script>
 <script src="js/nodes/shared.js"></script>
 <script src="js/nodes/shader.js"></script>
 <script src="js/nodes/combine.js"></script>

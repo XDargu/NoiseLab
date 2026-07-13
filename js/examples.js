@@ -2670,7 +2670,20 @@ const exampleIsland = {
   ],
   "groups": [],
   "config": {},
-  "extra": {},
+  "extra": {
+    "terrain": {
+      "enabled": true,
+      "stops": [
+        { "value": 0.0, "color": "#0000c8" },
+        { "value": 0.1, "color": "#0064ff" },
+        { "value": 0.2, "color": "#eed6af" },
+        { "value": 0.4, "color": "#228b22" },
+        { "value": 0.6, "color": "#006400" },
+        { "value": 0.8, "color": "#8b4513" },
+        { "value": 1.5, "color": "#ffffff" }
+      ]
+    }
+  },
   "version": 0.4
 };
 

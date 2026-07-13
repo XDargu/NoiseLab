@@ -28,7 +28,7 @@ I added a "terrain mode" to convert the output noise into a heightmap interprete
 - Mix, transform, filter, and combine procedural image sources.
 - Preview every node directly inside the graph.
 - Click any node to see its output in the preview window.
-- Toggle terrain mode to color heightmaps as islands, coasts, grass, hills, and snow.
+- Toggle terrain mode and edit per-graph color stops to map height values to oceans, coasts, grass, hills, snow, or your own palette.
 - Save graphs automatically in browser local storage.
 - Export and import graph files.
 - Download the generated image as a PNG.

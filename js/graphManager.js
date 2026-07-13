@@ -161,7 +161,7 @@ async function createNewGraph() {
 }
 
 async function loadGraphById(id) {
-    clearTimeout(saveInternal);
+    await flushPendingGraphSave();
 
     const g = await NoiseLabStorage.getGraph(id);
     if (!g)
@@ -169,11 +169,19 @@ async function loadGraphById(id) {
 
     currentGraphId = id;
     document.getElementById("currentGraphName").innerText = g.name;
-    graph.clear();
     isLoadingGraph = true;
+    graph.clear();
     graph.configure(g.data || {});
     isLoadingGraph = false;
+    clearTimeout(saveInternal);
+    const addedTerrainDefaults = loadTerrainConfigFromGraph();
     renderNode(graph._nodes_in_order[0]);
+
+    if (addedTerrainDefaults) {
+        g.data = graph.serialize();
+        await NoiseLabStorage.saveGraph(id, g);
+    }
+
     await renderGraphList();
     localStorage.setItem(LAST_GRAPH_STORAGE_KEY, id);
 
@@ -181,26 +189,43 @@ async function loadGraphById(id) {
 }
 
 function autoSaveGraph() {
+    if (isLoadingGraph)
+        return;
+
     clearTimeout(saveInternal);
     saveInternal = setTimeout(async () => {
-        if (isLoadingGraph)
-            return;
-
-        if (!currentGraphId)
-            currentGraphId = await createNewGraph();
-
-        const graphRecord = await NoiseLabStorage.getGraph(currentGraphId);
-        const name = graphRecord ? graphRecord.name : "Untitled";
-        const pinned = graphRecord ? graphRecord.pinned : false;
-
-        await NoiseLabStorage.saveGraph(currentGraphId, {
-            name,
-            pinned,
-            data: graph.serialize()
-        });
-
-        await renderGraphList();
+        saveInternal = null;
+        await saveCurrentGraph();
     }, 100);
+}
+
+async function saveCurrentGraph() {
+    if (isLoadingGraph)
+        return;
+
+    if (!currentGraphId)
+        currentGraphId = await createNewGraph();
+
+    const graphRecord = await NoiseLabStorage.getGraph(currentGraphId);
+    const name = graphRecord ? graphRecord.name : "Untitled";
+    const pinned = graphRecord ? graphRecord.pinned : false;
+
+    await NoiseLabStorage.saveGraph(currentGraphId, {
+        name,
+        pinned,
+        data: graph.serialize()
+    });
+
+    await renderGraphList();
+}
+
+async function flushPendingGraphSave() {
+    if (!saveInternal)
+        return;
+
+    clearTimeout(saveInternal);
+    saveInternal = null;
+    await saveCurrentGraph();
 }
 
 async function renderGraphList() {
@@ -250,14 +275,18 @@ async function renderGraphList() {
             if (!confirm("Delete this graph?"))
                 return;
 
+            await flushPendingGraphSave();
             await NoiseLabStorage.deleteGraph(id);
             await renderGraphList();
 
             if (currentGraphId === id) {
+                isLoadingGraph = true;
                 graph.clear();
+                isLoadingGraph = false;
                 document.getElementById("currentGraphName").innerText = "Untitled";
                 currentGraphId = null;
                 localStorage.removeItem(LAST_GRAPH_STORAGE_KEY);
+                loadTerrainConfigFromGraph();
             }
         };
 

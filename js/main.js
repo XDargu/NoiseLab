@@ -60,16 +60,6 @@ GPU.init(WIDTH, HEIGHT);
 // --- Node evaluation ---
 let activeNode = null;
 
-const terrainModeCheck = document.getElementById("terrain-mode")
-terrainModeCheck.checked = localStorage.getItem("noiseLabTerrainMode") == "true";
-
-terrainModeCheck.onchange = () => { 
-
-    localStorage.setItem("noiseLabTerrainMode", terrainModeCheck.checked);
-    renderNode(graph.activeNode);
-    graphCanvas.draw(true)
-}
-
 // --- Graph setup ---
 const graphCanvasEl = document.getElementById("graph");
 const graph = new LGraph();
@@ -221,6 +211,8 @@ yourGraphsList.addEventListener("click", e => {
 
 // --- Click node to preview full canvas ---
 function renderNode(node, select = true){
+    if (node && select)
+        activeNode = node;
     
     // execute all nodes
     graph._nodes_in_order.forEach(n => { if (n.onExecute) n.onExecute() });
@@ -241,6 +233,7 @@ graphCanvas.onNodeSelected = node=>{
     renderNode(activeNode);
 };
 
+initTerrainEditor();
 initGraphManager(graphCanvasEl)
 
 // Welcome modal

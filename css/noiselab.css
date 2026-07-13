@@ -21,7 +21,7 @@ body {
   flex-shrink: 0;
   user-select: none;
 }
-#titlebar span {
+#titlebar > #currentGraphName {
   margin-left: 10px;
   min-width: 0;
   overflow: hidden;
@@ -110,8 +110,9 @@ body {
 .checkbox-container {
   display: block;
   position: relative;
-  padding-left: 45px;
+  padding: 6px;
   cursor: pointer;
+  padding-left: 40px;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -127,11 +128,15 @@ body {
   width: 0;
 }
 
+.checkbox-container:hover {
+    background: #444;
+}
+
 /* Create a custom checkbox */
 .checkmark {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 7px;
+  left: 10px;
   height: 20px;
   width: 20px;
   background-color: #eee;
@@ -301,6 +306,201 @@ body {
   background: #444;
 }
 
+#terrainControls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+#terrainEditor {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 10px);
+  right: 0;
+  box-sizing: border-box;
+  width: min(430px, calc(100vw - 24px));
+  max-height: min(680px, calc(100dvh - 78px));
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #595959;
+  border-radius: 10px;
+  background: #242424;
+  color: #eee;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+  user-select: none;
+}
+
+#terrainEditor[hidden] {
+  display: none;
+}
+
+.terrain-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.terrain-editor-header strong {
+  display: block;
+  color: #fff;
+  font-size: 17px;
+}
+
+.terrain-editor-header small {
+  display: block;
+  margin-top: 3px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+#titlebar #closeTerrainEditorBtn {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 5px;
+}
+
+#terrainGradientPreview {
+  height: 34px;
+  border: 1px solid #666;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.terrain-gradient-scale {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 1px 13px;
+  color: #999;
+  font-size: 11px;
+}
+
+#terrainStops {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.terrain-stop {
+  padding: 9px;
+  border: 1px solid #414141;
+  border-radius: 7px;
+  background: #2c2c2c;
+}
+
+.terrain-stop-controls {
+  display: grid;
+  grid-template-columns: 38px 88px minmax(110px, 1fr) 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.terrain-color-input {
+  box-sizing: border-box;
+  width: 38px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid #666;
+  border-radius: 5px;
+  background: #222;
+  cursor: pointer;
+}
+
+.terrain-hex-input,
+.terrain-value-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #1d1d1d;
+  color: #eee;
+  font: inherit;
+  font-size: 13px;
+}
+
+.terrain-hex-input {
+  padding: 0 7px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.terrain-hex-input.invalid {
+  border-color: #d15c67;
+  box-shadow: 0 0 0 1px #d15c67;
+}
+
+.terrain-value-label {
+  display: grid;
+  grid-template-columns: auto minmax(56px, 1fr);
+  align-items: center;
+  gap: 6px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.terrain-value-input {
+  padding: 0 4px 0 7px;
+}
+
+#titlebar .terrain-remove-stop {
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 4px;
+  color: #bbb;
+}
+
+#titlebar .terrain-remove-stop:hover:not(:disabled) {
+  color: #ff919b;
+  background: #493136;
+}
+
+#titlebar .terrain-remove-stop:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.terrain-value-range {
+  width: 100%;
+  height: 18px;
+  margin: 8px 0 0;
+  accent-color: #b16f8f;
+  cursor: ew-resize;
+}
+
+.terrain-editor-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+#titlebar .terrain-editor-actions button {
+  min-height: 36px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  background: #303030;
+}
+
+#titlebar .terrain-editor-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.terrain-editor-hint {
+  margin: 11px 0 0;
+  color: #999;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 
 #yourGraphsSection {
     overflow: auto;
@@ -458,7 +658,7 @@ body {
     font-size: 1em;
   }
 
-  #titlebar span {
+  #titlebar > #currentGraphName {
     flex: 1 1 calc(100% - 52px);
     margin-left: 0;
     font-size: 1.05em;
@@ -489,6 +689,23 @@ body {
     align-items: center;
     padding-left: 34px;
     font-size: 0.9em;
+  }
+
+  #terrainControls {
+    margin-left: 0;
+  }
+
+  #titlebar #terrainPaletteBtn span {
+    display: none;
+  }
+
+  #terrainEditor {
+    position: fixed;
+    top: 62px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: calc(100dvh - 74px);
   }
 
   .checkmark {
@@ -594,5 +811,10 @@ body {
 
   .checkbox-container {
     flex: 1 1 auto;
+  }
+
+  .terrain-stop-controls {
+    grid-template-columns: 38px 82px minmax(96px, 1fr) 32px;
+    gap: 6px;
   }
 }
