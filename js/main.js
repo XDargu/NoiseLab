@@ -194,9 +194,7 @@ function resizeGraph() {
     const width = Math.max(1, Math.floor(container.clientWidth));
     const height = Math.max(1, Math.floor(container.clientHeight));
 
-    graphCanvasEl.width = width;
-    graphCanvasEl.height = height;
-    graphCanvas.resize();
+    graphCanvas.resize(width, height);
 }
 window.addEventListener("resize", resizeGraph);
 resizeGraph();
